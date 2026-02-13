@@ -4,83 +4,79 @@ import api from '../api/client'
 const SIZE = 10
 const LIST_SIZE = 500
 
-function VentasPage() {
-  const [ventas, setVentas] = useState([])
+function ComprasPage() {
+  const [compras, setCompras] = useState([])
   const [page, setPage] = useState(0)
   const [totalPages, setTotalPages] = useState(0)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
 
   const [showModal, setShowModal] = useState(false)
-  const [clientes, setClientes] = useState([])
+  const [proveedores, setProveedores] = useState([])
   const [metodosPago, setMetodosPago] = useState([])
   const [productos, setProductos] = useState([])
   const [saving, setSaving] = useState(false)
   const [formError, setFormError] = useState(null)
 
   const [form, setForm] = useState({
-    clienteId: '',
+    proveedorId: '',
     metodoPagoId: '',
-    tipoDocumento: '',
-    numeroDocumento: '',
     observaciones: '',
-    items: [{ productoId: '', cantidad: 1 }],
+    numeroDocumento: '',
+    items: [{ productoId: '', cantidad: 1, precioUnitario: '' }],
   })
-  const [codigoBarras, setCodigoBarras] = useState('')
 
-  const loadVentas = useCallback(async (pageNumber = 0) => {
+  const loadCompras = useCallback(async (pageNumber = 0) => {
     setLoading(true)
     setError(null)
     try {
-      const response = await api.get('/api/ventas', {
+      const response = await api.get('/api/compras', {
         params: { page: pageNumber, size: SIZE },
       })
       const data = response.data
-      setVentas(data.content || [])
+      setCompras(data.content || [])
       setPage(data.number ?? pageNumber)
       setTotalPages(data.totalPages ?? 0)
     } catch (err) {
       console.error(err)
-      setError('No se pudieron cargar las ventas')
+      setError('No se pudieron cargar las compras')
     } finally {
       setLoading(false)
     }
   }, [])
 
   useEffect(() => {
-    loadVentas(0)
-  }, [loadVentas])
+    loadCompras(0)
+  }, [loadCompras])
 
   const openModal = async () => {
     setForm({
-      clienteId: '',
+      proveedorId: '',
       metodoPagoId: '',
-      tipoDocumento: '',
-      numeroDocumento: '',
       observaciones: '',
-      items: [{ productoId: '', cantidad: 1 }],
+      numeroDocumento: '',
+      items: [{ productoId: '', cantidad: 1, precioUnitario: '' }],
     })
-    setCodigoBarras('')
     setFormError(null)
     setShowModal(true)
     try {
-      const [clientesRes, metodosRes, productosRes] = await Promise.all([
-        api.get('/api/clientes', { params: { page: 0, size: LIST_SIZE } }),
+      const [provRes, metodosRes, productosRes] = await Promise.all([
+        api.get('/api/proveedores', { params: { page: 0, size: LIST_SIZE } }),
         api.get('/api/metodos-pago'),
         api.get('/api/productos', { params: { page: 0, size: LIST_SIZE } }),
       ])
-      setClientes(clientesRes.data.content ?? clientesRes.data ?? [])
+      setProveedores(provRes.data.content ?? provRes.data ?? [])
       setMetodosPago(metodosRes.data ?? [])
       setProductos(productosRes.data.content ?? productosRes.data ?? [])
     } catch (e) {
-      setFormError('No se pudieron cargar clientes, productos o métodos de pago')
+      setFormError('No se pudieron cargar proveedores, productos o métodos de pago')
     }
   }
 
   const addItem = () => {
     setForm((f) => ({
       ...f,
-      items: [...f.items, { productoId: '', cantidad: 1 }],
+      items: [...f.items, { productoId: '', cantidad: 1, precioUnitario: '' }],
     }))
   }
 
@@ -100,62 +96,46 @@ function VentasPage() {
     }))
   }
 
-  const agregarPorCodigo = () => {
-    const cod = codigoBarras.trim()
-    if (!cod) return
-    const producto = productos.find((p) => (p.codigo || '').toString().toLowerCase() === cod.toLowerCase())
-    if (!producto) {
-      setFormError(`No hay producto con código "${cod}"`)
-      return
-    }
-    setFormError(null)
-    setForm((f) => {
-      const idx = f.items.findIndex((it) => Number(it.productoId) === Number(producto.id))
-      if (idx >= 0) {
-        return {
-          ...f,
-          items: f.items.map((it, i) =>
-            i === idx ? { ...it, cantidad: (it.cantidad || 0) + 1 } : it
-          ),
-        }
-      }
-      return { ...f, items: [...f.items, { productoId: String(producto.id), cantidad: 1 }] }
-    })
-    setCodigoBarras('')
-  }
-
-  const handleSubmitVenta = async (e) => {
+  const handleSubmitCompra = async (e) => {
     e.preventDefault()
     setFormError(null)
-    const clienteId = form.clienteId ? Number(form.clienteId) : null
-    if (!clienteId) {
-      setFormError('Seleccione un cliente')
+    const proveedorId = form.proveedorId ? Number(form.proveedorId) : null
+    if (!proveedorId) {
+      setFormError('Seleccione un proveedor')
       return
     }
     const items = form.items
-      .filter((it) => it.productoId && it.cantidad > 0)
+      .filter(
+        (it) =>
+          it.productoId &&
+          it.cantidad > 0 &&
+          it.precioUnitario !== '' &&
+          Number(it.precioUnitario) > 0
+      )
       .map((it) => ({
         productoId: Number(it.productoId),
         cantidad: Number(it.cantidad),
+        precioUnitario: Number(it.precioUnitario),
       }))
     if (items.length === 0) {
-      setFormError('Agregue al menos un producto con cantidad')
+      setFormError('Agregue al menos un producto con cantidad y precio unitario')
       return
     }
     setSaving(true)
     try {
-      await api.post('/api/ventas', {
-        clienteId,
+      await api.post('/api/compras', {
+        proveedorId,
         metodoPagoId: form.metodoPagoId ? Number(form.metodoPagoId) : null,
-        tipoDocumento: form.tipoDocumento || null,
-        numeroDocumento: form.numeroDocumento || null,
         observaciones: form.observaciones || null,
+        numeroDocumento: form.numeroDocumento || null,
         items,
       })
       setShowModal(false)
-      loadVentas(page)
+      loadCompras(page)
     } catch (err) {
-      setFormError(err.response?.data?.message || 'Error al registrar la venta')
+      setFormError(
+        err.response?.data?.message || 'Error al registrar la compra'
+      )
     } finally {
       setSaving(false)
     }
@@ -175,13 +155,13 @@ function VentasPage() {
     <>
       <div className="card border-0 shadow-sm">
         <div className="card-header bg-white d-flex justify-content-between align-items-center">
-          <h5 className="card-title mb-0">Ventas</h5>
+          <h5 className="card-title mb-0">Compras</h5>
           <button className="btn btn-sm btn-primary" type="button" onClick={openModal}>
-            Nueva venta
+            Nueva compra
           </button>
         </div>
         <div className="card-body">
-          {loading && <p>Cargando ventas...</p>}
+          {loading && <p>Cargando compras...</p>}
           {error && (
             <div className="alert alert-danger py-2" role="alert">
               {error}
@@ -196,8 +176,8 @@ function VentasPage() {
                     <tr>
                       <th>ID</th>
                       <th>Fecha</th>
-                      <th>Cliente</th>
-                      <th>Tipo / Nº doc</th>
+                      <th>Proveedor</th>
+                      <th>Documento</th>
                       <th>Usuario</th>
                       <th>Método de pago</th>
                       <th>Total</th>
@@ -205,26 +185,25 @@ function VentasPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {ventas.length === 0 ? (
+                    {compras.length === 0 ? (
                       <tr>
                         <td colSpan="8" className="text-center text-muted">
-                          No hay ventas registradas.
+                          No hay compras registradas.
                         </td>
                       </tr>
                     ) : (
-                      ventas.map((venta) => (
-                        <tr key={venta.id}>
-                          <td>{venta.id}</td>
-                          <td>{formatFecha(venta.fecha)}</td>
-                          <td>{venta.clienteNombre}</td>
+                      compras.map((c) => (
+                        <tr key={c.id}>
+                          <td>{c.id}</td>
+                          <td>{formatFecha(c.fecha)}</td>
+                          <td>{c.proveedorNombre}</td>
+                          <td>{c.numeroDocumento ?? '—'}</td>
+                          <td>{c.usuarioNombre}</td>
+                          <td>{c.metodoPagoNombre ?? '—'}</td>
                           <td>
-                            {venta.tipoDocumento ?? '—'}
-                            {venta.numeroDocumento ? ` ${venta.numeroDocumento}` : ''}
+                            S/ {c.total != null ? Number(c.total).toFixed(2) : '0.00'}
                           </td>
-                          <td>{venta.usuarioNombre}</td>
-                          <td>{venta.metodoPagoNombre ?? '—'}</td>
-                          <td>S/ {venta.total != null ? Number(venta.total).toFixed(2) : '0.00'}</td>
-                          <td>{venta.estado}</td>
+                          <td>{c.estado}</td>
                         </tr>
                       ))
                     )}
@@ -240,7 +219,7 @@ function VentasPage() {
                   <button
                     type="button"
                     className="btn btn-outline-secondary"
-                    onClick={() => loadVentas(page - 1)}
+                    onClick={() => loadCompras(page - 1)}
                     disabled={page === 0}
                   >
                     Anterior
@@ -248,7 +227,7 @@ function VentasPage() {
                   <button
                     type="button"
                     className="btn btn-outline-secondary"
-                    onClick={() => loadVentas(page + 1)}
+                    onClick={() => loadCompras(page + 1)}
                     disabled={page + 1 >= totalPages}
                   >
                     Siguiente
@@ -260,14 +239,13 @@ function VentasPage() {
         </div>
       </div>
 
-      {/* Modal Nueva venta */}
       {showModal && (
         <div className="modal show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
           <div className="modal-dialog modal-lg modal-dialog-scrollable">
             <div className="modal-content">
-              <form onSubmit={handleSubmitVenta}>
+              <form onSubmit={handleSubmitCompra}>
                 <div className="modal-header">
-                  <h5 className="modal-title">Nueva venta</h5>
+                  <h5 className="modal-title">Nueva compra</h5>
                   <button
                     type="button"
                     className="btn-close"
@@ -280,121 +258,118 @@ function VentasPage() {
                     <div className="alert alert-danger py-2">{formError}</div>
                   )}
                   <div className="mb-3">
-                    <label className="form-label">Cliente *</label>
+                    <label className="form-label">Proveedor *</label>
                     <select
                       className="form-select"
-                      value={form.clienteId}
-                      onChange={(e) => setForm((f) => ({ ...f, clienteId: e.target.value }))}
+                      value={form.proveedorId}
+                      onChange={(e) =>
+                        setForm((f) => ({ ...f, proveedorId: e.target.value }))
+                      }
                       required
                     >
                       <option value="">Seleccione...</option>
-                      {clientes.map((c) => (
-                        <option key={c.id} value={c.id}>
-                          {c.nombre}
+                      {proveedores.map((p) => (
+                        <option key={p.id} value={p.id}>
+                          {p.nombre}
                         </option>
                       ))}
                     </select>
                   </div>
                   <div className="row g-2">
-                    <div className="col-6">
-                      <label className="form-label">Tipo documento</label>
-                      <select
-                        className="form-select"
-                        value={form.tipoDocumento}
-                        onChange={(e) => setForm((f) => ({ ...f, tipoDocumento: e.target.value }))}
-                      >
-                        <option value="">Sin especificar</option>
-                        <option value="FACTURA">Factura</option>
-                        <option value="BOLETA">Boleta</option>
-                      </select>
-                    </div>
-                    <div className="col-6">
+                    <div className="col-md-6">
                       <label className="form-label">Nº documento</label>
                       <input
                         type="text"
                         className="form-control"
-                        placeholder="Ej. F001-00001"
                         value={form.numeroDocumento}
-                        onChange={(e) => setForm((f) => ({ ...f, numeroDocumento: e.target.value }))}
+                        onChange={(e) =>
+                          setForm((f) => ({ ...f, numeroDocumento: e.target.value }))
+                        }
                       />
                     </div>
+                    <div className="col-md-6">
+                      <label className="form-label">Método de pago</label>
+                      <select
+                        className="form-select"
+                        value={form.metodoPagoId}
+                        onChange={(e) =>
+                          setForm((f) => ({ ...f, metodoPagoId: e.target.value }))
+                        }
+                      >
+                        <option value="">Sin especificar</option>
+                        {metodosPago.map((m) => (
+                          <option key={m.id} value={m.id}>
+                            {m.nombre}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
                   </div>
-                  <div className="mb-3">
-                    <label className="form-label">Método de pago</label>
-                    <select
-                      className="form-select"
-                      value={form.metodoPagoId}
-                      onChange={(e) => setForm((f) => ({ ...f, metodoPagoId: e.target.value }))}
-                    >
-                      <option value="">Sin especificar</option>
-                      {metodosPago.map((m) => (
-                        <option key={m.id} value={m.id}>
-                          {m.nombre}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  <div className="mb-3">
+                  <div className="mb-3 mt-2">
                     <label className="form-label">Observaciones</label>
                     <textarea
                       className="form-control"
                       rows={2}
                       value={form.observaciones}
-                      onChange={(e) => setForm((f) => ({ ...f, observaciones: e.target.value }))}
+                      onChange={(e) =>
+                        setForm((f) => ({ ...f, observaciones: e.target.value }))
+                      }
                     />
                   </div>
-                  <div className="mb-2">
-                    <label className="form-label small text-muted mb-1">
-                      Agregar por código (código de barras)
-                    </label>
-                    <div className="d-flex gap-2">
-                      <input
-                        type="text"
-                        className="form-control form-control-sm"
-                        placeholder="Escriba o escanee código..."
-                        value={codigoBarras}
-                        onChange={(e) => setCodigoBarras(e.target.value)}
-                        onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), agregarPorCodigo())}
-                      />
-                      <button type="button" className="btn btn-sm btn-outline-secondary" onClick={agregarPorCodigo}>
-                        Agregar
-                      </button>
-                    </div>
-                  </div>
                   <div className="mb-2 d-flex justify-content-between align-items-center">
-                    <label className="form-label mb-0">Detalle (producto y cantidad) *</label>
+                    <label className="form-label mb-0">Detalle (producto, cantidad, precio unit.) *</label>
                     <button type="button" className="btn btn-sm btn-outline-primary" onClick={addItem}>
                       + Agregar línea
                     </button>
                   </div>
                   {form.items.map((item, index) => (
                     <div key={index} className="row g-2 mb-2 align-items-end">
-                      <div className="col-6">
+                      <div className="col-4">
                         <select
                           className="form-select form-select-sm"
                           value={item.productoId}
-                          onChange={(e) => updateItem(index, 'productoId', e.target.value)}
+                          onChange={(e) =>
+                            updateItem(index, 'productoId', e.target.value)
+                          }
                         >
                           <option value="">Producto...</option>
                           {productos.map((p) => (
                             <option key={p.id} value={p.id}>
-                              {p.nombre} — S/ {p.precio != null ? Number(p.precio).toFixed(2) : ''}
+                              {p.nombre}
                             </option>
                           ))}
                         </select>
                       </div>
-                      <div className="col-3">
+                      <div className="col-2">
                         <input
                           type="number"
                           className="form-control form-control-sm"
                           min="1"
+                          placeholder="Cant."
                           value={item.cantidad}
                           onChange={(e) =>
-                            updateItem(index, 'cantidad', parseInt(e.target.value, 10) || 0)
+                            updateItem(
+                              index,
+                              'cantidad',
+                              parseInt(e.target.value, 10) || 0
+                            )
                           }
                         />
                       </div>
-                      <div className="col-3">
+                      <div className="col-2">
+                        <input
+                          type="number"
+                          className="form-control form-control-sm"
+                          min="0"
+                          step="0.01"
+                          placeholder="P. unit."
+                          value={item.precioUnitario}
+                          onChange={(e) =>
+                            updateItem(index, 'precioUnitario', e.target.value)
+                          }
+                        />
+                      </div>
+                      <div className="col-2">
                         <button
                           type="button"
                           className="btn btn-sm btn-outline-danger"
@@ -416,7 +391,7 @@ function VentasPage() {
                     Cancelar
                   </button>
                   <button type="submit" className="btn btn-primary" disabled={saving}>
-                    {saving ? 'Guardando...' : 'Registrar venta'}
+                    {saving ? 'Guardando...' : 'Registrar compra'}
                   </button>
                 </div>
               </form>
@@ -428,4 +403,4 @@ function VentasPage() {
   )
 }
 
-export default VentasPage
+export default ComprasPage

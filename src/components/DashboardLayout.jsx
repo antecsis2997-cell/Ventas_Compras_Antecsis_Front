@@ -2,10 +2,12 @@ import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import 'bootstrap/dist/css/bootstrap.min.css'
 import '../App.css'
 import { useAuth } from '../context/AuthContext'
+import { getUsernameFromToken } from '../utils/jwt'
 
 function DashboardLayout() {
   const navigate = useNavigate()
-  const { logout } = useAuth()
+  const { token, logout } = useAuth()
+  const username = getUsernameFromToken(token)
 
   const handleLogout = () => {
     logout()
@@ -27,27 +29,36 @@ function DashboardLayout() {
           <NavLink to="/ventas" className="nav-link text-white">
             Ventas
           </NavLink>
-          <span className="text-uppercase text-secondary small mt-3 mb-1">
-            Próximamente
-          </span>
-          <button type="button" className="btn btn-link nav-link text-secondary text-start px-0">
+          <NavLink to="/compras" className="nav-link text-white">
             Compras
-          </button>
-          <button type="button" className="btn btn-link nav-link text-secondary text-start px-0">
+          </NavLink>
+          <NavLink to="/productos" className="nav-link text-white">
             Productos
-          </button>
-          <button type="button" className="btn btn-link nav-link text-secondary text-start px-0">
+          </NavLink>
+          <NavLink to="/clientes" className="nav-link text-white">
             Clientes
-          </button>
-          <button type="button" className="btn btn-link nav-link text-secondary text-start px-0">
+          </NavLink>
+          <NavLink to="/proveedores" className="nav-link text-white">
             Proveedores
-          </button>
-          <button type="button" className="btn btn-link nav-link text-secondary text-start px-0">
+          </NavLink>
+          <NavLink to="/usuarios" className="nav-link text-white">
             Usuarios
-          </button>
+          </NavLink>
+          <NavLink to="/sectores" className="nav-link text-white">
+            Sectores
+          </NavLink>
+          <NavLink to="/localizaciones" className="nav-link text-white">
+            Localizaciones
+          </NavLink>
+          <NavLink to="/solicitudes-producto" className="nav-link text-white">
+            Solicitudes
+          </NavLink>
+          <NavLink to="/mensajes" className="nav-link text-white">
+            Mensajes
+          </NavLink>
         </nav>
         <div className="mt-auto pt-3 border-top border-secondary small">
-          <div>Usuario: admin</div>
+          <div>Usuario: {username ?? '—'}</div>
           <button className="btn btn-sm btn-outline-light mt-2 w-100" onClick={handleLogout}>
             Cerrar sesión
           </button>
