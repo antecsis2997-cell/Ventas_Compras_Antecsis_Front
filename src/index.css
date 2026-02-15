@@ -1,68 +1,151 @@
-:root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
 
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
-}
-a:hover {
-  color: #535bf2;
-}
-
-body {
-  margin: 0;
-  display: flex;
-  place-items: center;
-  min-width: 320px;
-  min-height: 100vh;
-}
-
-h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
-}
-
-button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  background-color: #1a1a1a;
-  cursor: pointer;
-  transition: border-color 0.25s;
-}
-button:hover {
-  border-color: #646cff;
-}
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
-}
-
-@media (prefers-color-scheme: light) {
+@layer base {
   :root {
-    color: #213547;
-    background-color: #ffffff;
+    --background: 220 20% 97%;
+    --foreground: 220 30% 15%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 220 30% 15%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 30% 15%;
+
+    --primary: 215 80% 50%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 220 15% 92%;
+    --secondary-foreground: 220 30% 25%;
+
+    --muted: 220 15% 95%;
+    --muted-foreground: 220 10% 50%;
+
+    --accent: 38 95% 55%;
+    --accent-foreground: 30 60% 15%;
+
+    --destructive: 0 72% 55%;
+    --destructive-foreground: 0 0% 100%;
+
+    --success: 152 60% 42%;
+    --success-foreground: 0 0% 100%;
+
+    --warning: 38 95% 55%;
+    --warning-foreground: 30 60% 15%;
+
+    --info: 205 85% 55%;
+    --info-foreground: 0 0% 100%;
+
+    --border: 220 15% 90%;
+    --input: 220 15% 90%;
+    --ring: 215 80% 50%;
+
+    --radius: 0.5rem;
+
+    --sidebar-background: 222 47% 11%;
+    --sidebar-foreground: 220 15% 80%;
+    --sidebar-primary: 215 80% 55%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 222 40% 16%;
+    --sidebar-accent-foreground: 220 15% 90%;
+    --sidebar-border: 222 35% 18%;
+    --sidebar-ring: 215 80% 55%;
+    --sidebar-muted: 222 30% 22%;
+
+    --chart-1: 215 80% 50%;
+    --chart-2: 152 60% 42%;
+    --chart-3: 38 95% 55%;
+    --chart-4: 280 60% 55%;
+    --chart-5: 0 72% 55%;
   }
-  a:hover {
-    color: #747bff;
+
+  .dark {
+    --background: 222 47% 8%;
+    --foreground: 220 15% 90%;
+
+    --card: 222 47% 11%;
+    --card-foreground: 220 15% 90%;
+
+    --popover: 222 47% 11%;
+    --popover-foreground: 220 15% 90%;
+
+    --primary: 215 80% 55%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 222 35% 18%;
+    --secondary-foreground: 220 15% 90%;
+
+    --muted: 222 30% 15%;
+    --muted-foreground: 220 10% 55%;
+
+    --accent: 38 95% 55%;
+    --accent-foreground: 30 60% 15%;
+
+    --destructive: 0 72% 55%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 222 30% 18%;
+    --input: 222 30% 18%;
+    --ring: 215 80% 55%;
+
+    --sidebar-background: 222 50% 7%;
+    --sidebar-foreground: 220 15% 75%;
+    --sidebar-primary: 215 80% 55%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 222 45% 12%;
+    --sidebar-accent-foreground: 220 15% 90%;
+    --sidebar-border: 222 40% 12%;
+    --sidebar-ring: 215 80% 55%;
+    --sidebar-muted: 222 35% 15%;
   }
-  button {
-    background-color: #f9f9f9;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-semibold tracking-tight;
+  }
+}
+
+@layer components {
+  .stat-card {
+    @apply bg-card rounded-lg border border-border p-5 shadow-sm transition-all duration-200 hover:shadow-md;
+  }
+
+  .stat-card-icon {
+    @apply flex h-12 w-12 items-center justify-center rounded-lg;
+  }
+
+  .table-container {
+    @apply bg-card rounded-lg border border-border shadow-sm overflow-hidden;
+  }
+
+  .page-header {
+    @apply mb-6;
+  }
+
+  .page-title {
+    @apply text-2xl font-bold text-foreground;
+  }
+
+  .page-subtitle {
+    @apply text-sm text-muted-foreground mt-1;
+  }
+}
+
+@layer utilities {
+  .scrollbar-thin {
+    scrollbar-width: thin;
   }
 }
