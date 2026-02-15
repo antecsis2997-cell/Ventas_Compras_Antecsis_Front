@@ -1,14 +1,17 @@
 import axios from "axios";
 
-const API_URL = "http://localhost:8080";
+const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8080";
 
 export const api = axios.create({
   baseURL: API_URL,
   headers: { "Content-Type": "application/json" },
 });
 
+const AUTH_TOKEN_KEY = "authToken";
+const storage = sessionStorage;
+
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem("authToken");
+  const token = storage.getItem(AUTH_TOKEN_KEY);
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
@@ -19,7 +22,7 @@ api.interceptors.response.use(
   (res) => res,
   (err) => {
     if (err.response?.status === 401) {
-      localStorage.removeItem("authToken");
+      storage.removeItem(AUTH_TOKEN_KEY);
       window.location.href = "/login";
     }
     return Promise.reject(err);
@@ -27,15 +30,15 @@ api.interceptors.response.use(
 );
 
 export function getAuthToken(): string | null {
-  return localStorage.getItem("authToken");
+  return storage.getItem(AUTH_TOKEN_KEY);
 }
 
 export function setAuthToken(token: string): void {
-  localStorage.setItem("authToken", token);
+  storage.setItem(AUTH_TOKEN_KEY, token);
 }
 
 export function logout(): void {
-  localStorage.removeItem("authToken");
+  storage.removeItem(AUTH_TOKEN_KEY);
 }
 
 /** Decode JWT payload to get username (no lib needed). */

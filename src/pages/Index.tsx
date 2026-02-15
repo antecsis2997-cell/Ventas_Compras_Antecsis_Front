@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { StatCard } from "@/components/StatCard";
 import { api } from "@/lib/api";
 import {
@@ -200,9 +201,9 @@ export default function Dashboard() {
         <div className="table-container">
           <div className="p-5 pb-3 flex items-center justify-between">
             <h3 className="text-base font-semibold text-foreground">Alertas de Stock</h3>
-            <a href="/productos" className="text-sm text-primary hover:underline">
+            <Link to="/productos" className="text-sm text-primary hover:underline">
               Ver todo
-            </a>
+            </Link>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
@@ -223,7 +224,7 @@ export default function Dashboard() {
                   </tr>
                 ) : (
                   productosStock.map((p, idx) => (
-                    <tr key={idx} className="border-b border-border last:border-0 hover:bg-muted/30 transition-colors">
+                    <tr key={p.nombre ? `${p.nombre}-${idx}` : idx} className="border-b border-border last:border-0 hover:bg-muted/30 transition-colors">
                       <td className="px-5 py-3 font-medium text-foreground">{p.nombre}</td>
                       <td className="px-5 py-3 text-foreground">{p.stock}</td>
                       <td className="px-5 py-3 text-muted-foreground">{p.stockMinimoAlerta ?? "—"}</td>

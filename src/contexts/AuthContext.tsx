@@ -32,7 +32,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const isAuthenticated = !!getAuthToken();
 
-  if (!ready) return null;
+  if (!ready) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-muted/30" role="status" aria-label="Cargando">
+        <span className="text-muted-foreground text-sm">Cargando...</span>
+      </div>
+    );
+  }
 
   return (
     <AuthContext.Provider value={{ isAuthenticated, username, login, logout }}>
