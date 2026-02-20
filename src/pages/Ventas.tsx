@@ -28,7 +28,7 @@ export default function Ventas() {
   const [totalPages, setTotalPages] = useState(0);
   const [loading, setLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
-  const [clientes, setClientes] = useState<{ id: number; nombre: string }[]>([]);
+  const [clientes, setClientes] = useState<{ id: number; nombre: string; documento?: string | null }[]>([]);
   const [metodosPago, setMetodosPago] = useState<{ id: number; nombre: string }[]>([]);
   const [productos, setProductos] = useState<{ id: number; nombre: string; codigo: string; precio: number }[]>([]);
   const [form, setForm] = useState({
@@ -40,6 +40,7 @@ export default function Ventas() {
     items: [{ productoId: "", cantidad: 1 }],
   });
   const [codigoBarras, setCodigoBarras] = useState("");
+  const [filterCliente, setFilterCliente] = useState("");
   const [saving, setSaving] = useState(false);
   const [formError, setFormError] = useState("");
 
@@ -72,6 +73,7 @@ export default function Ventas() {
       items: [{ productoId: "", cantidad: 1 }],
     });
     setCodigoBarras("");
+    setFilterCliente("");
     setFormError("");
     setShowModal(true);
     try {
@@ -256,6 +258,13 @@ export default function Ventas() {
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label className="text-sm font-medium">Cliente *</label>
+              <input
+                type="text"
+                placeholder="Buscar por nombre o RUC/DNI..."
+                className="mb-2 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                value={filterCliente}
+                onChange={(e) => setFilterCliente(e.target.value)}
+              />
               <select
                 className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
                 value={form.clienteId}
@@ -263,8 +272,18 @@ export default function Ventas() {
                 required
               >
                 <option value="">Seleccione...</option>
-                {clientes.map((c) => (
-                  <option key={c.id} value={c.id}>{c.nombre}</option>
+                {clientes
+                  .filter(
+                    (c) =>
+                      !filterCliente.trim() ||
+                      c.nombre?.toLowerCase().includes(filterCliente.toLowerCase()) ||
+                      (c.documento ?? "").includes(filterCliente)
+                  )
+                  .map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.nombre}
+                    {c.documento ? ` (${c.documento})` : ""}
+                  </option>
                 ))}
               </select>
             </div>

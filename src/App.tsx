@@ -3,7 +3,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { AuthProvider } from "@/contexts/AuthContext";
+import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { AdminLayout } from "@/components/AdminLayout";
 import Login from "./pages/Login";
@@ -13,6 +13,7 @@ import Ventas from "./pages/Ventas";
 import Compras from "./pages/Compras";
 import Usuarios from "./pages/Usuarios";
 import Sectores from "./pages/Sectores";
+import Clientes from "./pages/Clientes";
 import { PlaceholderPage } from "./components/PlaceholderPage";
 import Reportes from "./pages/Reportes";
 import ReportesDiarias from "./pages/ReportesDiarias";
@@ -21,6 +22,22 @@ import ReportesAnuales from "./pages/ReportesAnuales";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
+
+function UsuariosRoute() {
+  const { rolNombre } = useAuth();
+  if (rolNombre !== "SUPERUSUARIO" && rolNombre !== "ADMIN") {
+    return <Navigate to="/" replace />;
+  }
+  return <Usuarios />;
+}
+
+function SectoresRoute() {
+  const { rolNombre } = useAuth();
+  if (rolNombre !== "SUPERUSUARIO") {
+    return <Navigate to="/" replace />;
+  }
+  return <Sectores />;
+}
 
 function DashboardLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -44,13 +61,14 @@ const App = () => (
             <Route path="/ventas" element={<DashboardLayout><Ventas /></DashboardLayout>} />
             <Route path="/compras" element={<DashboardLayout><Compras /></DashboardLayout>} />
             <Route path="/insumos" element={<DashboardLayout><Productos /></DashboardLayout>} />
-            <Route path="/usuarios" element={<DashboardLayout><Usuarios /></DashboardLayout>} />
-            <Route path="/clientes" element={<DashboardLayout><PlaceholderPage title="Clientes" subtitle="Gestión de clientes" /></DashboardLayout>} />
+            <Route path="/usuarios" element={<DashboardLayout><UsuariosRoute /></DashboardLayout>} />
+            <Route path="/clientes" element={<DashboardLayout><Clientes /></DashboardLayout>} />
             <Route path="/proveedores" element={<DashboardLayout><PlaceholderPage title="Proveedores" subtitle="Gestión de proveedores" /></DashboardLayout>} />
-            <Route path="/sectores" element={<DashboardLayout><Sectores /></DashboardLayout>} />
+            <Route path="/sectores" element={<DashboardLayout><SectoresRoute /></DashboardLayout>} />
             <Route path="/localizacion" element={<DashboardLayout><PlaceholderPage title="Localización" subtitle="Gestión de ubicaciones" /></DashboardLayout>} />
             <Route path="/solicitudes" element={<DashboardLayout><PlaceholderPage title="Solicitudes" subtitle="Solicitudes de producto" /></DashboardLayout>} />
             <Route path="/mensajes" element={<DashboardLayout><PlaceholderPage title="Mensajes" subtitle="CHAT / mensajes" /></DashboardLayout>} />
+            <Route path="/historial-pedidos" element={<DashboardLayout><PlaceholderPage title="Historial de pedidos" subtitle="Consulta de pedidos" /></DashboardLayout>} />
             <Route path="/reportes" element={<DashboardLayout><Reportes /></DashboardLayout>} />
             <Route path="/reportes/diarias" element={<DashboardLayout><ReportesDiarias /></DashboardLayout>} />
             <Route path="/reportes/mensuales" element={<DashboardLayout><ReportesMensuales /></DashboardLayout>} />

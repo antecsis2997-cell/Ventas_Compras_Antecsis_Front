@@ -32,6 +32,7 @@ export default function Sectores() {
   const [form, setForm] = useState(emptyForm);
   const [saving, setSaving] = useState(false);
   const [formError, setFormError] = useState("");
+  const [deleteError, setDeleteError] = useState("");
 
   const loadSectores = useCallback(async (pageNum: number = 0) => {
     setLoading(true);
@@ -101,12 +102,14 @@ export default function Sectores() {
   };
 
   const handleDelete = async (id: number) => {
+    setDeleteError("");
     if (!confirm("¿Eliminar esta sede/sector?")) return;
     try {
       await api.delete("/api/sectores/" + id);
       loadSectores(page);
-    } catch {
-      // ignore
+    } catch (err: unknown) {
+      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
+      setDeleteError(msg || "No se pudo eliminar el sector");
     }
   };
 
@@ -118,6 +121,11 @@ export default function Sectores() {
       </div>
 
       <div className="table-container">
+        {deleteError && (
+          <div className="mb-4 rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">
+            {deleteError}
+          </div>
+        )}
         <div className="flex justify-end mb-4">
           <Button onClick={openCreate}>
             <Plus className="mr-2 h-4 w-4" />

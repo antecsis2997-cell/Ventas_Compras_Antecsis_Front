@@ -1,9 +1,10 @@
 import { createContext, useContext, useState, useCallback, useEffect, type ReactNode } from "react";
-import { api, getAuthToken, setAuthToken as persistToken, logout as doLogout, getUsernameFromToken } from "@/lib/api";
+import { api, getAuthToken, setAuthToken as persistToken, logout as doLogout, getUsernameFromToken, getRoleFromToken } from "@/lib/api";
 
 interface AuthContextType {
   isAuthenticated: boolean;
   username: string | null;
+  rolNombre: string | null;
   login: (username: string, password: string) => Promise<void>;
   logout: () => void;
 }
@@ -12,10 +13,12 @@ const AuthContext = createContext<AuthContextType | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [username, setUsername] = useState<string | null>(null);
+  const [rolNombre, setRolNombre] = useState<string | null>(null);
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
     setUsername(getUsernameFromToken());
+    setRolNombre(getRoleFromToken());
     setReady(true);
   }, []);
 
@@ -23,11 +26,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const { data } = await api.post<{ token: string }>("/api/auth/login", { username: user, password });
     persistToken(data.token);
     setUsername(getUsernameFromToken());
+    setRolNombre(getRoleFromToken());
   }, []);
 
   const logout = useCallback(() => {
     doLogout();
     setUsername(null);
+    setRolNombre(null);
   }, []);
 
   const isAuthenticated = !!getAuthToken();
@@ -41,7 +46,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, username, login, logout }}>
+    <AuthContext.Provider value={{ isAuthenticated, username, rolNombre, login, logout }}>
       {children}
     </AuthContext.Provider>
   );

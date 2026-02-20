@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { logout } from "@/lib/api";
+import { useAuth } from "@/contexts/AuthContext";
 import {
   LayoutDashboard,
   Package,
@@ -15,6 +16,11 @@ import {
   Building2,
   MapPin,
   FileText,
+  UserCircle2,
+  UsersRound,
+  ClipboardList,
+  MessageSquare,
+  History,
 } from "lucide-react";
 
 interface SidebarItem {
@@ -22,6 +28,8 @@ interface SidebarItem {
   url: string;
   icon: React.ElementType;
   children?: { title: string; url: string }[];
+  requiresAdmin?: boolean;
+  requiresSuperadmin?: boolean;
 }
 
 const menuItems: SidebarItem[] = [
@@ -30,9 +38,14 @@ const menuItems: SidebarItem[] = [
   { title: "Ventas", url: "/ventas", icon: ShoppingCart },
   { title: "Compras", url: "/compras", icon: Truck },
   { title: "Insumos", url: "/insumos", icon: Boxes },
-  { title: "Usuarios", url: "/usuarios", icon: Users },
-  { title: "Sectores", url: "/sectores", icon: Building2 },
+  { title: "Usuarios", url: "/usuarios", icon: Users, requiresAdmin: true },
+  { title: "Clientes", url: "/clientes", icon: UserCircle2 },
+  { title: "Sectores", url: "/sectores", icon: Building2, requiresSuperadmin: true },
+  { title: "Proveedores", url: "/proveedores", icon: UsersRound },
   { title: "Localización", url: "/localizacion", icon: MapPin },
+  { title: "Solicitudes", url: "/solicitudes", icon: ClipboardList },
+  { title: "Mensajes", url: "/mensajes", icon: MessageSquare },
+  { title: "Historial de pedidos", url: "/historial-pedidos", icon: History },
   {
     title: "Reportes",
     url: "/reportes",
@@ -83,7 +96,16 @@ interface AdminSidebarProps {
 
 export function AdminSidebar({ collapsed, onToggle }: AdminSidebarProps) {
   const location = useLocation();
+  const { rolNombre } = useAuth();
+  const canManageUsers = rolNombre === "SUPERUSUARIO" || rolNombre === "ADMIN";
+  const canManageSectores = rolNombre === "SUPERUSUARIO";
   const [openMenus, setOpenMenus] = useState<string[]>(["Reportes"]);
+
+  const visibleMenuItems = menuItems.filter((item) => {
+    if (item.requiresSuperadmin) return canManageSectores;
+    if (item.requiresAdmin) return canManageUsers;
+    return true;
+  });
 
   const toggleMenu = (title: string) => {
     setOpenMenus((prev) =>
@@ -124,7 +146,7 @@ export function AdminSidebar({ collapsed, onToggle }: AdminSidebarProps) {
 
       {/* Navigation */}
       <nav className="flex-1 overflow-y-auto scrollbar-thin py-4 px-3 space-y-1">
-        {menuItems.map((item) => {
+        {visibleMenuItems.map((item) => {
           const Icon = item.icon;
           const active = isActive(item.url) || isChildActive(item.children);
           const isOpen = openMenus.includes(item.title);

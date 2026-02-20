@@ -52,3 +52,15 @@ export function getUsernameFromToken(): string | null {
     return null;
   }
 }
+
+/** Decode JWT payload to get role. */
+export function getRoleFromToken(): string | null {
+  const token = getAuthToken();
+  if (!token) return null;
+  try {
+    const payload = JSON.parse(atob(token.split(".")[1] || "{}"));
+    return payload.rol ?? null;
+  } catch {
+    return null;
+  }
+}
