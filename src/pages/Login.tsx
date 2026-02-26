@@ -24,10 +24,9 @@ export default function Login() {
       await login(username.trim(), password);
       navigate(from, { replace: true });
     } catch (err: unknown) {
-      const msg = (err as { response?: { data?: { message?: string }; status?: number } })?.response?.data?.message
-        ?? (err as { response?: { status?: number } })?.response?.status === 401
-          ? "Usuario o contraseña incorrectos"
-          : "Error al iniciar sesión";
+      const res = (err as { response?: { data?: { message?: string }; status?: number } })?.response;
+      const msg = res?.data?.message
+        ?? (res?.status === 401 ? "Usuario o contraseña incorrectos" : "Error al iniciar sesión");
       setError(msg);
     } finally {
       setLoading(false);

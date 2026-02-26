@@ -1,8 +1,9 @@
 import { useState, useEffect, useCallback } from "react";
-import { Plus, Edit, Trash2 } from "lucide-react";
+import { Plus, Edit, Trash2, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -21,6 +22,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Switch } from "@/components/ui/switch";
 import { api } from "@/lib/api";
+import { toast } from "sonner";
 
 const ROLES = [
   { value: "ADMIN", label: "Administrador" },
@@ -58,6 +60,16 @@ interface UsuarioRow {
   activo: boolean | null;
 }
 
+interface ModuloPermiso {
+  id: number;
+  codigo: string;
+  nombre: string;
+  descripcion: string;
+  icono: string;
+  orden: number;
+  asignado: boolean;
+}
+
 export default function Usuarios() {
   const [usuarios, setUsuarios] = useState<UsuarioRow[]>([]);
   const [page, setPage] = useState(0);
@@ -72,6 +84,13 @@ export default function Usuarios() {
   const [message, setMessage] = useState("");
   const [confirmDesactivarId, setConfirmDesactivarId] = useState<number | null>(null);
   const [currentUser, setCurrentUser] = useState<{ username: string | null; rolNombre: string; sedeId: number | null; sedeNombre: string | null } | null>(null);
+
+  const [permisosDialogOpen, setPermisosDialogOpen] = useState(false);
+  const [permisosUsuarioId, setPermisosUsuarioId] = useState<number | null>(null);
+  const [permisosUsuarioNombre, setPermisosUsuarioNombre] = useState("");
+  const [permisosModulos, setPermisosModulos] = useState<ModuloPermiso[]>([]);
+  const [permisosLoading, setPermisosLoading] = useState(false);
+  const [permisosSaving, setPermisosSaving] = useState(false);
 
   const loadUsuarios = useCallback(async (pageNum: number = 0) => {
     setLoading(true);
@@ -238,6 +257,51 @@ export default function Usuarios() {
     }
   };
 
+  const openPermisos = async (u: UsuarioRow) => {
+    setPermisosUsuarioId(u.id);
+    setPermisosUsuarioNombre(
+      [u.nombre, u.apellido].filter(Boolean).join(" ") || u.username
+    );
+    setPermisosDialogOpen(true);
+    setPermisosLoading(true);
+    try {
+      const { data } = await api.get<ModuloPermiso[]>(`/api/permisos/usuarios/${u.id}`);
+      setPermisosModulos(data);
+    } catch {
+      setPermisosModulos([]);
+    } finally {
+      setPermisosLoading(false);
+    }
+  };
+
+  const toggleModulo = (codigo: string) => {
+    setPermisosModulos((prev) =>
+      prev.map((m) =>
+        m.codigo === codigo ? { ...m, asignado: !m.asignado } : m
+      )
+    );
+  };
+
+  const guardarPermisos = async () => {
+    if (!permisosUsuarioId) return;
+    setPermisosSaving(true);
+    try {
+      const codigos = permisosModulos
+        .filter((m) => m.asignado)
+        .map((m) => m.codigo);
+      await api.put(`/api/permisos/usuarios/${permisosUsuarioId}`, {
+        moduloCodigos: codigos,
+      });
+      setPermisosDialogOpen(false);
+      toast.success(`Permisos de ${permisosUsuarioNombre} actualizados correctamente`);
+    } catch (err: unknown) {
+      const res = (err as { response?: { data?: { message?: string } } })?.response;
+      toast.error(res?.data?.message ?? "Error al guardar permisos");
+    } finally {
+      setPermisosSaving(false);
+    }
+  };
+
   return (
     <>
       <div className="page-header">
@@ -301,6 +365,9 @@ export default function Usuarios() {
                           />
                         </td>
                         <td className="p-3 text-right">
+                          <Button variant="ghost" size="icon" onClick={() => !isOwnUser && openPermisos(u)} title={isOwnUser ? "No puede editar sus propios permisos" : "Permisos"} disabled={isOwnUser}>
+                            <Shield className="h-4 w-4" />
+                          </Button>
                           <Button variant="ghost" size="icon" onClick={() => !isOwnUser && openEdit(u)} title={isOwnUser ? "No puede editar su propio usuario" : "Editar"} disabled={isOwnUser}>
                             <Edit className="h-4 w-4" />
                           </Button>
@@ -486,6 +553,50 @@ export default function Usuarios() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <Dialog open={permisosDialogOpen} onOpenChange={setPermisosDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Shield className="h-5 w-5" />
+              Permisos de {permisosUsuarioNombre}
+            </DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            Seleccione los módulos/vistas a los que este usuario tendrá acceso.
+          </p>
+          {permisosLoading ? (
+            <p className="text-sm text-muted-foreground py-4">Cargando permisos...</p>
+          ) : (
+            <div className="space-y-3 max-h-[400px] overflow-y-auto pr-1">
+              {permisosModulos.map((m) => (
+                <label
+                  key={m.codigo}
+                  className="flex items-start gap-3 p-2 rounded-md hover:bg-muted/50 cursor-pointer"
+                >
+                  <Checkbox
+                    checked={m.asignado}
+                    onCheckedChange={() => toggleModulo(m.codigo)}
+                    className="mt-0.5"
+                  />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium">{m.nombre}</p>
+                    <p className="text-xs text-muted-foreground">{m.descripcion}</p>
+                  </div>
+                </label>
+              ))}
+            </div>
+          )}
+          <div className="flex justify-end gap-2 pt-2">
+            <Button variant="outline" onClick={() => setPermisosDialogOpen(false)}>
+              Cerrar
+            </Button>
+            <Button onClick={guardarPermisos} disabled={permisosSaving || permisosLoading}>
+              {permisosSaving ? "Guardando..." : "Guardar permisos"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

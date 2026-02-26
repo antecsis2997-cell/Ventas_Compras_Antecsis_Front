@@ -1,12 +1,15 @@
 import { createContext, useContext, useState, useCallback, useEffect, type ReactNode } from "react";
-import { api, getAuthToken, setAuthToken as persistToken, logout as doLogout, getUsernameFromToken, getRoleFromToken } from "@/lib/api";
+import { api, getAuthToken, setAuthToken as persistToken, getUsernameFromToken, getRoleFromToken, logout as doLogout } from "@/lib/api";
 
 interface AuthContextType {
   isAuthenticated: boolean;
   username: string | null;
   rolNombre: string | null;
+  modulos: Set<string>;
   login: (username: string, password: string) => Promise<void>;
   logout: () => void;
+  hasModule: (codigo: string) => boolean;
+  refreshMe: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -14,26 +17,49 @@ const AuthContext = createContext<AuthContextType | null>(null);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [username, setUsername] = useState<string | null>(null);
   const [rolNombre, setRolNombre] = useState<string | null>(null);
+  const [modulos, setModulos] = useState<Set<string>>(new Set());
   const [ready, setReady] = useState(false);
 
-  useEffect(() => {
-    setUsername(getUsernameFromToken());
-    setRolNombre(getRoleFromToken());
-    setReady(true);
+  const fetchMe = useCallback(async () => {
+    try {
+      const { data } = await api.get("/api/auth/me");
+      setUsername(data.username ?? null);
+      setRolNombre(data.rolNombre ?? null);
+      setModulos(new Set(data.modulos ?? []));
+    } catch {
+      setUsername(getUsernameFromToken());
+      setRolNombre(getRoleFromToken());
+      setModulos(new Set());
+    }
   }, []);
+
+  useEffect(() => {
+    const token = getAuthToken();
+    if (token) {
+      fetchMe().finally(() => setReady(true));
+    } else {
+      setReady(true);
+    }
+  }, [fetchMe]);
 
   const login = useCallback(async (user: string, password: string) => {
     const { data } = await api.post<{ token: string }>("/api/auth/login", { username: user, password });
     persistToken(data.token);
-    setUsername(getUsernameFromToken());
-    setRolNombre(getRoleFromToken());
-  }, []);
+    await fetchMe();
+  }, [fetchMe]);
 
   const logout = useCallback(() => {
     doLogout();
     setUsername(null);
     setRolNombre(null);
+    setModulos(new Set());
   }, []);
+
+  const hasModule = useCallback((codigo: string) => {
+    if (rolNombre === "SUPERUSUARIO") return true;
+    if (modulos.has("*")) return true;
+    return modulos.has(codigo);
+  }, [rolNombre, modulos]);
 
   const isAuthenticated = !!getAuthToken();
 
@@ -46,7 +72,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, username, rolNombre, login, logout }}>
+    <AuthContext.Provider value={{ isAuthenticated, username, rolNombre, modulos, login, logout, hasModule, refreshMe: fetchMe }}>
       {children}
     </AuthContext.Provider>
   );

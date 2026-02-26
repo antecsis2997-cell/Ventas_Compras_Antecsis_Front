@@ -19,16 +19,17 @@ import Reportes from "./pages/Reportes";
 import ReportesDiarias from "./pages/ReportesDiarias";
 import ReportesMensuales from "./pages/ReportesMensuales";
 import ReportesAnuales from "./pages/ReportesAnuales";
+import Solicitudes from "./pages/Solicitudes";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
-function UsuariosRoute() {
-  const { rolNombre } = useAuth();
-  if (rolNombre !== "SUPERUSUARIO" && rolNombre !== "ADMIN") {
+function ModuleRoute({ modulo, children }: { modulo: string; children: React.ReactNode }) {
+  const { hasModule } = useAuth();
+  if (!hasModule(modulo)) {
     return <Navigate to="/" replace />;
   }
-  return <Usuarios />;
+  return <>{children}</>;
 }
 
 function SectoresRoute() {
@@ -56,23 +57,23 @@ const App = () => (
         <BrowserRouter>
           <Routes>
             <Route path="/login" element={<Login />} />
-            <Route path="/" element={<DashboardLayout><Index /></DashboardLayout>} />
-            <Route path="/productos" element={<DashboardLayout><Productos /></DashboardLayout>} />
-            <Route path="/ventas" element={<DashboardLayout><Ventas /></DashboardLayout>} />
-            <Route path="/compras" element={<DashboardLayout><Compras /></DashboardLayout>} />
-            <Route path="/insumos" element={<DashboardLayout><Productos /></DashboardLayout>} />
-            <Route path="/usuarios" element={<DashboardLayout><UsuariosRoute /></DashboardLayout>} />
-            <Route path="/clientes" element={<DashboardLayout><Clientes /></DashboardLayout>} />
-            <Route path="/proveedores" element={<DashboardLayout><PlaceholderPage title="Proveedores" subtitle="Gestión de proveedores" /></DashboardLayout>} />
+            <Route path="/" element={<DashboardLayout><ModuleRoute modulo="DASHBOARD"><Index /></ModuleRoute></DashboardLayout>} />
+            <Route path="/productos" element={<DashboardLayout><ModuleRoute modulo="PRODUCTOS"><Productos /></ModuleRoute></DashboardLayout>} />
+            <Route path="/ventas" element={<DashboardLayout><ModuleRoute modulo="VENTAS"><Ventas /></ModuleRoute></DashboardLayout>} />
+            <Route path="/compras" element={<DashboardLayout><ModuleRoute modulo="COMPRAS"><Compras /></ModuleRoute></DashboardLayout>} />
+            <Route path="/insumos" element={<DashboardLayout><ModuleRoute modulo="INVENTARIO"><Productos /></ModuleRoute></DashboardLayout>} />
+            <Route path="/usuarios" element={<DashboardLayout><ModuleRoute modulo="USUARIOS"><Usuarios /></ModuleRoute></DashboardLayout>} />
+            <Route path="/clientes" element={<DashboardLayout><ModuleRoute modulo="CLIENTES"><Clientes /></ModuleRoute></DashboardLayout>} />
+            <Route path="/proveedores" element={<DashboardLayout><ModuleRoute modulo="PROVEEDORES"><PlaceholderPage title="Proveedores" subtitle="Gestión de proveedores" /></ModuleRoute></DashboardLayout>} />
             <Route path="/sectores" element={<DashboardLayout><SectoresRoute /></DashboardLayout>} />
             <Route path="/localizacion" element={<DashboardLayout><PlaceholderPage title="Localización" subtitle="Gestión de ubicaciones" /></DashboardLayout>} />
-            <Route path="/solicitudes" element={<DashboardLayout><PlaceholderPage title="Solicitudes" subtitle="Solicitudes de producto" /></DashboardLayout>} />
-            <Route path="/mensajes" element={<DashboardLayout><PlaceholderPage title="Mensajes" subtitle="CHAT / mensajes" /></DashboardLayout>} />
-            <Route path="/historial-pedidos" element={<DashboardLayout><PlaceholderPage title="Historial de pedidos" subtitle="Consulta de pedidos" /></DashboardLayout>} />
-            <Route path="/reportes" element={<DashboardLayout><Reportes /></DashboardLayout>} />
-            <Route path="/reportes/diarias" element={<DashboardLayout><ReportesDiarias /></DashboardLayout>} />
-            <Route path="/reportes/mensuales" element={<DashboardLayout><ReportesMensuales /></DashboardLayout>} />
-            <Route path="/reportes/anuales" element={<DashboardLayout><ReportesAnuales /></DashboardLayout>} />
+            <Route path="/solicitudes" element={<DashboardLayout><ModuleRoute modulo="SOLICITUDES_STOCK"><Solicitudes /></ModuleRoute></DashboardLayout>} />
+            <Route path="/mensajes" element={<DashboardLayout><ModuleRoute modulo="MENSAJES"><PlaceholderPage title="Mensajes" subtitle="CHAT / mensajes" /></ModuleRoute></DashboardLayout>} />
+            <Route path="/historial-pedidos" element={<DashboardLayout><ModuleRoute modulo="HISTORIAL_PEDIDOS"><PlaceholderPage title="Historial de pedidos" subtitle="Consulta de pedidos" /></ModuleRoute></DashboardLayout>} />
+            <Route path="/reportes" element={<DashboardLayout><ModuleRoute modulo="REPORTES"><Reportes /></ModuleRoute></DashboardLayout>} />
+            <Route path="/reportes/diarias" element={<DashboardLayout><ModuleRoute modulo="REPORTES"><ReportesDiarias /></ModuleRoute></DashboardLayout>} />
+            <Route path="/reportes/mensuales" element={<DashboardLayout><ModuleRoute modulo="REPORTES"><ReportesMensuales /></ModuleRoute></DashboardLayout>} />
+            <Route path="/reportes/anuales" element={<DashboardLayout><ModuleRoute modulo="REPORTES"><ReportesAnuales /></ModuleRoute></DashboardLayout>} />
             <Route path="/facturacion" element={<Navigate to="/ventas" replace />} />
             <Route path="*" element={<NotFound />} />
           </Routes>

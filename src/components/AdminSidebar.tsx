@@ -27,55 +27,58 @@ interface SidebarItem {
   title: string;
   url: string;
   icon: React.ElementType;
+  moduloCodigo?: string;
   children?: { title: string; url: string }[];
-  requiresAdmin?: boolean;
   requiresSuperadmin?: boolean;
 }
 
 const menuItems: SidebarItem[] = [
-  { title: "Dashboard", url: "/", icon: LayoutDashboard },
-  { title: "Productos", url: "/productos", icon: Package },
-  { title: "Ventas", url: "/ventas", icon: ShoppingCart },
-  { title: "Compras", url: "/compras", icon: Truck },
-  { title: "Insumos", url: "/insumos", icon: Boxes },
-  { title: "Usuarios", url: "/usuarios", icon: Users, requiresAdmin: true },
-  { title: "Clientes", url: "/clientes", icon: UserCircle2 },
+  { title: "Dashboard", url: "/", icon: LayoutDashboard, moduloCodigo: "DASHBOARD" },
+  { title: "Productos", url: "/productos", icon: Package, moduloCodigo: "PRODUCTOS" },
+  { title: "Ventas", url: "/ventas", icon: ShoppingCart, moduloCodigo: "VENTAS" },
+  { title: "Compras", url: "/compras", icon: Truck, moduloCodigo: "COMPRAS" },
+  { title: "Insumos", url: "/insumos", icon: Boxes, moduloCodigo: "INVENTARIO" },
+  { title: "Usuarios", url: "/usuarios", icon: Users, moduloCodigo: "USUARIOS" },
+  { title: "Clientes", url: "/clientes", icon: UserCircle2, moduloCodigo: "CLIENTES" },
   { title: "Sectores", url: "/sectores", icon: Building2, requiresSuperadmin: true },
-  { title: "Proveedores", url: "/proveedores", icon: UsersRound },
+  { title: "Proveedores", url: "/proveedores", icon: UsersRound, moduloCodigo: "PROVEEDORES" },
   { title: "Localización", url: "/localizacion", icon: MapPin },
-  { title: "Solicitudes", url: "/solicitudes", icon: ClipboardList },
-  { title: "Mensajes", url: "/mensajes", icon: MessageSquare },
-  { title: "Historial de pedidos", url: "/historial-pedidos", icon: History },
+  { title: "Solicitudes", url: "/solicitudes", icon: ClipboardList, moduloCodigo: "SOLICITUDES_STOCK" },
+  { title: "Mensajes", url: "/mensajes", icon: MessageSquare, moduloCodigo: "MENSAJES" },
+  { title: "Historial de pedidos", url: "/historial-pedidos", icon: History, moduloCodigo: "HISTORIAL_PEDIDOS" },
   {
     title: "Reportes",
     url: "/reportes",
     icon: BarChart3,
+    moduloCodigo: "REPORTES",
     children: [
       { title: "Ventas Diarias", url: "/reportes/diarias" },
       { title: "Ventas Mensuales", url: "/reportes/mensuales" },
       { title: "Ventas Anuales", url: "/reportes/anuales" },
     ],
   },
-  { title: "Facturación", url: "/facturacion", icon: FileText },
+  { title: "Facturación", url: "/facturacion", icon: FileText, moduloCodigo: "VENTAS" },
 ];
 
 function SidebarUser() {
   const navigate = useNavigate();
+  const { username, rolNombre } = useAuth();
   const handleLogout = () => {
     logout();
     navigate("/login", { replace: true });
   };
+  const initial = username ? username.charAt(0).toUpperCase() : "U";
   return (
     <div className="flex items-center gap-3">
       <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-sidebar-primary text-sidebar-primary-foreground text-sm font-semibold">
-        A
+        {initial}
       </div>
       <div className="flex-1 min-w-0">
         <p className="text-sm font-medium text-sidebar-accent-foreground truncate">
-          Admin
+          {username ?? "Usuario"}
         </p>
         <p className="text-xs text-sidebar-foreground truncate">
-          Administrador
+          {rolNombre ?? ""}
         </p>
         <button
           type="button"
@@ -96,14 +99,13 @@ interface AdminSidebarProps {
 
 export function AdminSidebar({ collapsed, onToggle }: AdminSidebarProps) {
   const location = useLocation();
-  const { rolNombre } = useAuth();
-  const canManageUsers = rolNombre === "SUPERUSUARIO" || rolNombre === "ADMIN";
-  const canManageSectores = rolNombre === "SUPERUSUARIO";
+  const { rolNombre, hasModule } = useAuth();
+  const isSuperusuario = rolNombre === "SUPERUSUARIO";
   const [openMenus, setOpenMenus] = useState<string[]>(["Reportes"]);
 
   const visibleMenuItems = menuItems.filter((item) => {
-    if (item.requiresSuperadmin) return canManageSectores;
-    if (item.requiresAdmin) return canManageUsers;
+    if (item.requiresSuperadmin) return isSuperusuario;
+    if (item.moduloCodigo) return hasModule(item.moduloCodigo);
     return true;
   });
 
@@ -195,8 +197,8 @@ export function AdminSidebar({ collapsed, onToggle }: AdminSidebarProps) {
           }
 
           return (
-<NavLink
-            key={item.url}
+            <NavLink
+              key={item.url}
               to={item.url}
               end={item.url === "/"}
               className={({ isActive }) =>
@@ -213,7 +215,7 @@ export function AdminSidebar({ collapsed, onToggle }: AdminSidebarProps) {
         })}
       </nav>
 
-      {/* Footer: user from JWT */}
+      {/* Footer: user info */}
       {!collapsed && (
         <div className="border-t border-sidebar-border p-4">
           <SidebarUser />
