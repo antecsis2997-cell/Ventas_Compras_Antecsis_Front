@@ -2,10 +2,7 @@ import { useState, useEffect } from "react";
 import { api } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { FileSpreadsheet, FileText } from "lucide-react";
-
-function formatMoney(n: number) {
-  return `S/ ${Number(n).toFixed(2)}`;
-}
+import { formatMoney } from "@/lib/utils";
 
 export default function ReportesAnuales() {
   const hoy = new Date();

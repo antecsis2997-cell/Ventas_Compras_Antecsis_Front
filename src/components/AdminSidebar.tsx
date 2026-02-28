@@ -11,10 +11,8 @@ import {
   BarChart3,
   ChevronDown,
   ChevronLeft,
-  Store,
   Boxes,
   Building2,
-  MapPin,
   FileText,
   UserCircle2,
   UsersRound,
@@ -33,18 +31,19 @@ interface SidebarItem {
 }
 
 const menuItems: SidebarItem[] = [
+  // Vista general
   { title: "Dashboard", url: "/", icon: LayoutDashboard, moduloCodigo: "DASHBOARD" },
+  // Catálogo
   { title: "Productos", url: "/productos", icon: Package, moduloCodigo: "PRODUCTOS" },
-  { title: "Ventas", url: "/ventas", icon: ShoppingCart, moduloCodigo: "VENTAS" },
+  { title: "Inventario", url: "/insumos", icon: Boxes, moduloCodigo: "INVENTARIO" },
+  // Operaciones (primero compras, luego ventas)
   { title: "Compras", url: "/compras", icon: Truck, moduloCodigo: "COMPRAS" },
-  { title: "Insumos", url: "/insumos", icon: Boxes, moduloCodigo: "INVENTARIO" },
-  { title: "Usuarios", url: "/usuarios", icon: Users, moduloCodigo: "USUARIOS" },
+  { title: "Ventas", url: "/ventas", icon: ShoppingCart, moduloCodigo: "VENTAS" },
+  { title: "Facturación", url: "/facturacion", icon: FileText, moduloCodigo: "VENTAS" },
+  // Personas
   { title: "Clientes", url: "/clientes", icon: UserCircle2, moduloCodigo: "CLIENTES" },
-  { title: "Sectores", url: "/sectores", icon: Building2, requiresSuperadmin: true },
   { title: "Proveedores", url: "/proveedores", icon: UsersRound, moduloCodigo: "PROVEEDORES" },
-  { title: "Localización", url: "/localizacion", icon: MapPin },
-  { title: "Solicitudes", url: "/solicitudes", icon: ClipboardList, moduloCodigo: "SOLICITUDES_STOCK" },
-  { title: "Mensajes", url: "/mensajes", icon: MessageSquare, moduloCodigo: "MENSAJES" },
+  // Análisis
   { title: "Historial de pedidos", url: "/historial-pedidos", icon: History, moduloCodigo: "HISTORIAL_PEDIDOS" },
   {
     title: "Reportes",
@@ -57,7 +56,12 @@ const menuItems: SidebarItem[] = [
       { title: "Ventas Anuales", url: "/reportes/anuales" },
     ],
   },
-  { title: "Facturación", url: "/facturacion", icon: FileText, moduloCodigo: "VENTAS" },
+  // Comunicación
+  { title: "Solicitudes", url: "/solicitudes", icon: ClipboardList, moduloCodigo: "SOLICITUDES_STOCK" },
+  { title: "Mensajes", url: "/mensajes", icon: MessageSquare, moduloCodigo: "MENSAJES" },
+  // Administración
+  { title: "Usuarios", url: "/usuarios", icon: Users, moduloCodigo: "USUARIOS" },
+  { title: "Sectores", url: "/sectores", icon: Building2, requiresSuperadmin: true },
 ];
 
 function SidebarUser() {
@@ -129,13 +133,10 @@ export function AdminSidebar({ collapsed, onToggle }: AdminSidebarProps) {
       <div className="flex h-16 items-center justify-between border-b border-sidebar-border px-4">
         {!collapsed && (
           <div className="flex items-center gap-2">
-            <Store className="h-7 w-7 text-sidebar-primary" />
-            <span className="text-lg font-bold text-sidebar-accent-foreground">
-              BodegasPro
-            </span>
+            <img src="/logo-antecsis.png" alt="AnTecsis" className="h-12 w-auto" />
           </div>
         )}
-        {collapsed && <Store className="h-7 w-7 text-sidebar-primary mx-auto" />}
+        {collapsed && <img src="/logo-antecsis.png" alt="AnTecsis" className="h-9 w-auto mx-auto" />}
         <button
           onClick={onToggle}
           className="text-sidebar-foreground hover:text-sidebar-accent-foreground transition-colors p-1 rounded hover:bg-sidebar-accent"

@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { Store } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -37,10 +36,7 @@ export default function Login() {
     <div className="min-h-screen flex items-center justify-center bg-muted/30 p-4">
       <div className="w-full max-w-sm space-y-8 rounded-xl border border-border bg-card p-8 shadow-lg">
         <div className="flex flex-col items-center gap-2">
-          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary">
-            <Store className="h-7 w-7" />
-          </div>
-          <h1 className="text-xl font-bold text-foreground">BodegasPro</h1>
+          <img src="/logo-antecsis.png" alt="AnTecsis" className="h-36 w-auto" />
           <p className="text-sm text-muted-foreground">Inicie sesión en su cuenta</p>
         </div>
         <form onSubmit={handleSubmit} className="space-y-4">

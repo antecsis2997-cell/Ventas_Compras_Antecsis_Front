@@ -8,6 +8,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { api } from "@/lib/api";
+import { formatMoney } from "@/lib/utils";
 
 const UNIDADES = [{ value: "", label: "—" }, { value: "UND", label: "Unidad" }, { value: "KG", label: "Kg" }, { value: "MG", label: "Mg" }, { value: "GRAMOS", label: "Gramos" }];
 
@@ -20,6 +21,7 @@ interface ProductoRow {
   stock: number;
   categoriaId: number | null;
   categoriaNombre: string | null;
+  moneda: string;
   unidadMedida: string | null;
   imagenUrl?: string | null;
   stockMinimoAlerta?: number | null;
@@ -32,8 +34,8 @@ const emptyForm = {
   nombre: "",
   descripcion: "",
   precio: "",
-  stock: "",
   categoriaId: "",
+  moneda: "PEN",
   unidadMedida: "",
   imagenUrl: "",
   stockMinimoAlerta: "",
@@ -91,8 +93,8 @@ export default function Productos() {
       nombre: p.nombre ?? "",
       descripcion: p.descripcion ?? "",
       precio: p.precio != null ? String(p.precio) : "",
-      stock: p.stock != null ? String(p.stock) : "",
       categoriaId: p.categoriaId != null ? String(p.categoriaId) : "",
+      moneda: p.moneda ?? "PEN",
       unidadMedida: p.unidadMedida ?? "",
       imagenUrl: p.imagenUrl ?? "",
       stockMinimoAlerta: p.stockMinimoAlerta != null ? String(p.stockMinimoAlerta) : "",
@@ -106,29 +108,26 @@ export default function Productos() {
     setFormError("");
     const nombre = form.nombre?.trim();
     const precio = form.precio ? Number(form.precio) : null;
-    const stock = form.stock !== "" ? Number(form.stock) : null;
     if (!nombre) {
       setFormError("El nombre es obligatorio");
       return;
     }
     if (precio == null || precio <= 0) {
-      setFormError("Precio debe ser mayor a 0");
-      return;
-    }
-    if (stock == null || stock < 0) {
-      setFormError("Stock no puede ser negativo");
+      setFormError("Precio de venta debe ser mayor a 0");
       return;
     }
     setSaving(true);
     try {
+      const existing = editingId ? productos.find((p) => p.id === editingId) : null;
       const payload = {
         codigo: form.codigo?.trim() || null,
         nombre,
         descripcion: form.descripcion?.trim() || null,
         precio,
         precioCompra: null,
-        stock,
+        stock: existing ? existing.stock : 0,
         categoriaId: form.categoriaId ? Number(form.categoriaId) : null,
+        moneda: form.moneda || "PEN",
         unidadMedida: form.unidadMedida || null,
         imagenUrl: form.imagenUrl?.trim() || null,
         stockMinimoAlerta: form.stockMinimoAlerta !== "" ? Number(form.stockMinimoAlerta) : null,
@@ -173,7 +172,7 @@ export default function Productos() {
       <div className="page-header flex items-center justify-between">
         <div>
           <h1 className="page-title">Productos</h1>
-          <p className="page-subtitle">Gestión de inventario</p>
+          <p className="page-subtitle">Catálogo de productos</p>
         </div>
         <Button onClick={openCreate}>
           <Plus className="mr-2 h-4 w-4" />
@@ -201,7 +200,7 @@ export default function Productos() {
                 <th className="px-5 py-3 text-left font-medium text-muted-foreground">Código</th>
                 <th className="px-5 py-3 text-left font-medium text-muted-foreground">Producto</th>
                 <th className="px-5 py-3 text-left font-medium text-muted-foreground">Categoría</th>
-                <th className="px-5 py-3 text-left font-medium text-muted-foreground">Precio</th>
+                <th className="px-5 py-3 text-left font-medium text-muted-foreground">Precio venta</th>
                 <th className="px-5 py-3 text-left font-medium text-muted-foreground">Stock</th>
                 <th className="px-5 py-3 text-left font-medium text-muted-foreground">Unidad</th>
                 <th className="px-5 py-3 text-left font-medium text-muted-foreground">Estado</th>
@@ -220,7 +219,7 @@ export default function Productos() {
                     <td className="px-5 py-3 text-muted-foreground">{p.codigo ?? "—"}</td>
                     <td className="px-5 py-3 font-medium text-foreground">{p.nombre}</td>
                     <td className="px-5 py-3 text-muted-foreground">{p.categoriaNombre ?? "—"}</td>
-                    <td className="px-5 py-3 text-foreground">S/ {Number(p.precio).toFixed(2)}</td>
+                    <td className="px-5 py-3 text-foreground">{formatMoney(Number(p.precio), (p.moneda as "PEN" | "USD") ?? "PEN")}</td>
                     <td className="px-5 py-3 text-foreground">{p.stock}</td>
                     <td className="px-5 py-3 text-muted-foreground">{p.unidadMedida ?? "—"}</td>
                     <td className="px-5 py-3">{stockBadge(p)}</td>
@@ -270,12 +269,15 @@ export default function Productos() {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="text-sm font-medium">Precio (S/) *</label>
+                <label className="text-sm font-medium">Precio de venta *</label>
                 <input type="number" step="0.01" min="0" className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm" value={form.precio} onChange={(e) => setForm((f) => ({ ...f, precio: e.target.value }))} required />
               </div>
               <div>
-                <label className="text-sm font-medium">Stock *</label>
-                <input type="number" min="0" className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm" value={form.stock} onChange={(e) => setForm((f) => ({ ...f, stock: e.target.value }))} required />
+                <label className="text-sm font-medium">Moneda</label>
+                <select className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm" value={form.moneda} onChange={(e) => setForm((f) => ({ ...f, moneda: e.target.value }))}>
+                  <option value="PEN">S/ Soles</option>
+                  <option value="USD">$ Dólares</option>
+                </select>
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4">

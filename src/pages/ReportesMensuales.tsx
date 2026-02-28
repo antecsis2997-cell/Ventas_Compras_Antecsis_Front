@@ -2,15 +2,12 @@ import { useState, useEffect } from "react";
 import { api } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { FileSpreadsheet, FileText } from "lucide-react";
+import { formatMoney } from "@/lib/utils";
 
 const MESES = [
   "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
   "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre",
 ];
-
-function formatMoney(n: number) {
-  return "S/ " + Number(n).toFixed(2);
-}
 
 function getFirstLastDay(year: number, month: number) {
   const first = year + "-" + String(month).padStart(2, "0") + "-01";

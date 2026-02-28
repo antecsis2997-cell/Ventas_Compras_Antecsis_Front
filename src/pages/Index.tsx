@@ -2,16 +2,13 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { StatCard } from "@/components/StatCard";
 import { api } from "@/lib/api";
+import { formatMoney } from "@/lib/utils";
 import {
   DollarSign,
   ShoppingCart,
   Package,
   TrendingUp,
 } from "lucide-react";
-
-function formatMoney(n: number) {
-  return `S/ ${Number(n).toFixed(2)}`;
-}
 
 export default function Dashboard() {
   const [ventasHoy, setVentasHoy] = useState({ totalVentas: 0, montoTotal: 0 });

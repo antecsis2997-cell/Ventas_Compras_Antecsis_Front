@@ -1,11 +1,8 @@
 import { useState, useEffect } from "react";
 import { api } from "@/lib/api";
 import { Button } from "@/components/ui/button";
+import { formatMoney } from "@/lib/utils";
 import { Calendar, FileSpreadsheet, FileText } from "lucide-react";
-
-function formatMoney(n: number) {
-  return "S/ " + Number(n).toFixed(2);
-}
 
 export default function ReportesDiarias() {
   const [fecha, setFecha] = useState(() => new Date().toISOString().slice(0, 10));
