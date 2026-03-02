@@ -19,6 +19,7 @@ import {
   ClipboardList,
   MessageSquare,
   History,
+  Tags,
 } from "lucide-react";
 
 interface SidebarItem {
@@ -35,6 +36,7 @@ const menuItems: SidebarItem[] = [
   { title: "Dashboard", url: "/", icon: LayoutDashboard, moduloCodigo: "DASHBOARD" },
   // Catálogo
   { title: "Productos", url: "/productos", icon: Package, moduloCodigo: "PRODUCTOS" },
+  { title: "Categorías", url: "/categorias", icon: Tags, moduloCodigo: "PRODUCTOS" },
   { title: "Inventario", url: "/insumos", icon: Boxes, moduloCodigo: "INVENTARIO" },
   // Operaciones (primero compras, luego ventas)
   { title: "Compras", url: "/compras", icon: Truck, moduloCodigo: "COMPRAS" },

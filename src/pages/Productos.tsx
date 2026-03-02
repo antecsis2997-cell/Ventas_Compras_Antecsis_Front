@@ -25,6 +25,9 @@ interface ProductoRow {
   unidadMedida: string | null;
   imagenUrl?: string | null;
   stockMinimoAlerta?: number | null;
+  tipo?: string | null;
+  marca?: string | null;
+  cantidad?: number | null;
 }
 
 interface Categoria { id: number; nombre: string; }
@@ -39,6 +42,9 @@ const emptyForm = {
   unidadMedida: "",
   imagenUrl: "",
   stockMinimoAlerta: "",
+  tipo: "",
+  marca: "",
+  cantidad: "",
 };
 
 export default function Productos() {
@@ -98,6 +104,9 @@ export default function Productos() {
       unidadMedida: p.unidadMedida ?? "",
       imagenUrl: p.imagenUrl ?? "",
       stockMinimoAlerta: p.stockMinimoAlerta != null ? String(p.stockMinimoAlerta) : "",
+      tipo: p.tipo ?? "",
+      marca: p.marca ?? "",
+      cantidad: p.cantidad != null ? String(p.cantidad) : "",
     });
     setFormError("");
     setDialogOpen(true);
@@ -131,6 +140,9 @@ export default function Productos() {
         unidadMedida: form.unidadMedida || null,
         imagenUrl: form.imagenUrl?.trim() || null,
         stockMinimoAlerta: form.stockMinimoAlerta !== "" ? Number(form.stockMinimoAlerta) : null,
+        tipo: form.tipo?.trim() || null,
+        marca: form.marca?.trim() || null,
+        cantidad: form.cantidad !== "" ? Number(form.cantidad) : null,
       };
       if (editingId) {
         await api.put(`/api/productos/${editingId}`, payload);
@@ -297,6 +309,20 @@ export default function Productos() {
                     <option key={u.value || "x"} value={u.value}>{u.label}</option>
                   ))}
                 </select>
+              </div>
+            </div>
+            <div className="grid grid-cols-3 gap-4">
+              <div>
+                <label className="text-sm font-medium">Tipo</label>
+                <input className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm" value={form.tipo} onChange={(e) => setForm((f) => ({ ...f, tipo: e.target.value }))} maxLength={100} />
+              </div>
+              <div>
+                <label className="text-sm font-medium">Marca</label>
+                <input className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm" value={form.marca} onChange={(e) => setForm((f) => ({ ...f, marca: e.target.value }))} maxLength={100} />
+              </div>
+              <div>
+                <label className="text-sm font-medium">Cantidad</label>
+                <input type="number" step="0.01" min="0" className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm" value={form.cantidad} onChange={(e) => setForm((f) => ({ ...f, cantidad: e.target.value }))} />
               </div>
             </div>
             <div>

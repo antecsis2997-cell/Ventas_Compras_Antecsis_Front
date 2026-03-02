@@ -1,13 +1,13 @@
 import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import { User, Lock, Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { useAuth } from "@/contexts/AuthContext";
 
 export default function Login() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
@@ -35,9 +35,8 @@ export default function Login() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-muted/30 p-4">
       <div className="w-full max-w-sm space-y-8 rounded-xl border border-border bg-card p-8 shadow-lg">
-        <div className="flex flex-col items-center gap-2">
+        <div className="flex flex-col items-center">
           <img src="/logo-antecsis.png" alt="AnTecsis" className="h-36 w-auto" />
-          <p className="text-sm text-muted-foreground">Inicie sesión en su cuenta</p>
         </div>
         <form onSubmit={handleSubmit} className="space-y-4">
           {error && (
@@ -45,9 +44,9 @@ export default function Login() {
               {error}
             </div>
           )}
-          <div className="space-y-2">
-            <Label htmlFor="username">Usuario</Label>
-            <Input
+          <div className="relative">
+            <User className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <input
               id="username"
               type="text"
               placeholder="Usuario"
@@ -55,23 +54,31 @@ export default function Login() {
               onChange={(e) => setUsername(e.target.value)}
               autoComplete="username"
               required
-              className="h-10"
+              className="h-11 w-full rounded-md border border-input bg-background pl-10 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
             />
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="password">Contraseña</Label>
-            <Input
+          <div className="relative">
+            <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <input
               id="password"
-              type="password"
-              placeholder="••••••••"
+              type={showPassword ? "text" : "password"}
+              placeholder="Contraseña"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               autoComplete="current-password"
               required
-              className="h-10"
+              className="h-11 w-full rounded-md border border-input bg-background pl-10 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
             />
+            <button
+              type="button"
+              onClick={() => setShowPassword((v) => !v)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+              tabIndex={-1}
+            >
+              {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+            </button>
           </div>
-          <Button type="submit" className="w-full" disabled={loading}>
+          <Button type="submit" className="w-full h-11" disabled={loading}>
             {loading ? "Entrando..." : "Iniciar sesión"}
           </Button>
         </form>

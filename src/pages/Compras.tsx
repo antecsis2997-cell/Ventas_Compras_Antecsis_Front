@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { Search, Plus, Trash2 } from "lucide-react";
+import { Search, Plus, Trash2, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -16,11 +16,31 @@ interface CompraRow {
   id: number;
   fecha: string;
   proveedorNombre: string;
+  usuarioNombre: string;
   sectorId: number | null;
   sectorNombre: string | null;
   total: number;
   estado: string;
   numeroDocumento: string | null;
+}
+
+interface CompraDetalle {
+  id: number;
+  fecha: string;
+  proveedorNombre: string;
+  usuarioNombre: string;
+  sectorNombre: string | null;
+  total: number;
+  estado: string;
+  numeroDocumento: string | null;
+  metodoPagoNombre: string | null;
+  observaciones: string | null;
+  items: {
+    productoNombre: string;
+    cantidad: number;
+    precioUnitario: number;
+    subtotal: number;
+  }[];
 }
 
 function formatNumCompra(id: number) {
@@ -48,6 +68,10 @@ export default function Compras() {
   const [filterProveedor, setFilterProveedor] = useState("");
   const [saving, setSaving] = useState(false);
   const [formError, setFormError] = useState("");
+
+  const [showDetalleModal, setShowDetalleModal] = useState(false);
+  const [compraDetalle, setCompraDetalle] = useState<CompraDetalle | null>(null);
+  const [loadingDetalle, setLoadingDetalle] = useState(false);
 
   const loadCompras = useCallback(async (pageNum: number = 0) => {
     setLoading(true);
@@ -174,6 +198,22 @@ export default function Compras() {
     }
   };
 
+  const verDetalle = async (id: number) => {
+    setShowDetalleModal(true);
+    setLoadingDetalle(true);
+    setCompraDetalle(null);
+    try {
+      const res = await api.get(`/api/compras/${id}`);
+      setCompraDetalle(res.data);
+    } catch (err: unknown) {
+      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message ?? "Error al cargar detalle";
+      alert(msg);
+      setShowDetalleModal(false);
+    } finally {
+      setLoadingDetalle(false);
+    }
+  };
+
   return (
     <>
       <div className="page-header flex items-center justify-between">
@@ -207,6 +247,7 @@ export default function Compras() {
                 <th className="px-5 py-3 text-left font-medium text-muted-foreground">Fecha</th>
                 <th className="px-5 py-3 text-left font-medium text-muted-foreground">Sector</th>
                 <th className="px-5 py-3 text-left font-medium text-muted-foreground">Proveedor</th>
+                <th className="px-5 py-3 text-left font-medium text-muted-foreground">Usuario</th>
                 <th className="px-5 py-3 text-left font-medium text-muted-foreground">N° Documento</th>
                 <th className="px-5 py-3 text-left font-medium text-muted-foreground">Total</th>
                 <th className="px-5 py-3 text-left font-medium text-muted-foreground">Estado</th>
@@ -215,29 +256,44 @@ export default function Compras() {
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan={8} className="px-5 py-4 text-center text-muted-foreground">Cargando...</td></tr>
+                <tr><td colSpan={9} className="px-5 py-4 text-center text-muted-foreground">Cargando...</td></tr>
               ) : filtered.length === 0 ? (
-                <tr><td colSpan={8} className="px-5 py-4 text-center text-muted-foreground">No hay compras</td></tr>
+                <tr><td colSpan={9} className="px-5 py-4 text-center text-muted-foreground">No hay compras</td></tr>
               ) : (
                 filtered.map((c) => (
-                  <tr key={c.id} className="border-b border-border last:border-0 hover:bg-muted/30 transition-colors">
+                  <tr 
+                    key={c.id} 
+                    className="border-b border-border last:border-0 hover:bg-muted/30 transition-colors cursor-pointer"
+                    onClick={() => verDetalle(c.id)}
+                  >
                     <td className="px-5 py-3 font-medium text-primary">{formatNumCompra(c.id)}</td>
                     <td className="px-5 py-3 text-muted-foreground">{c.fecha ? new Date(c.fecha).toLocaleString() : "—"}</td>
                     <td className="px-5 py-3 text-foreground">{c.sectorNombre ?? "—"}</td>
                     <td className="px-5 py-3 text-foreground">{c.proveedorNombre}</td>
+                    <td className="px-5 py-3 text-muted-foreground">{c.usuarioNombre}</td>
                     <td className="px-5 py-3 text-muted-foreground">{c.numeroDocumento ?? "—"}</td>
                     <td className="px-5 py-3 font-semibold text-foreground">{formatMoney(Number(c.total))}</td>
                     <td className="px-5 py-3">{estadoBadge(c.estado)}</td>
-                    <td className="px-5 py-3">
-                      <button
-                        type="button"
-                        className="rounded p-1.5 text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors disabled:opacity-30"
-                        title="Anular compra"
-                        onClick={() => handleAnular(c.id)}
-                        disabled={c.estado === "ANULADA"}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
+                    <td className="px-5 py-3" onClick={(e) => e.stopPropagation()}>
+                      <div className="flex items-center gap-1">
+                        <button
+                          type="button"
+                          className="rounded p-1.5 text-muted-foreground hover:bg-primary/10 hover:text-primary transition-colors"
+                          title="Ver detalles"
+                          onClick={() => verDetalle(c.id)}
+                        >
+                          <Eye className="h-4 w-4" />
+                        </button>
+                        <button
+                          type="button"
+                          className="rounded p-1.5 text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors disabled:opacity-30"
+                          title="Anular compra"
+                          onClick={() => handleAnular(c.id)}
+                          disabled={c.estado === "ANULADA"}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))
@@ -410,6 +466,92 @@ export default function Compras() {
               <Button type="submit" disabled={saving}>{saving ? "Registrando..." : "Registrar compra"}</Button>
             </div>
           </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal Detalle de Compra */}
+      <Dialog open={showDetalleModal} onOpenChange={setShowDetalleModal}>
+        <DialogContent className="sm:max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Detalle de Compra {compraDetalle ? formatNumCompra(compraDetalle.id) : ""}</DialogTitle>
+          </DialogHeader>
+          {loadingDetalle ? (
+            <div className="py-8 text-center text-muted-foreground">Cargando detalle...</div>
+          ) : compraDetalle ? (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div>
+                  <span className="font-medium text-muted-foreground">Fecha:</span>
+                  <p className="text-foreground">{compraDetalle.fecha ? new Date(compraDetalle.fecha).toLocaleString() : "—"}</p>
+                </div>
+                <div>
+                  <span className="font-medium text-muted-foreground">Estado:</span>
+                  <p className="mt-1">{estadoBadge(compraDetalle.estado)}</p>
+                </div>
+                <div>
+                  <span className="font-medium text-muted-foreground">Proveedor:</span>
+                  <p className="text-foreground">{compraDetalle.proveedorNombre}</p>
+                </div>
+                <div>
+                  <span className="font-medium text-muted-foreground">Usuario:</span>
+                  <p className="text-foreground">{compraDetalle.usuarioNombre}</p>
+                </div>
+                <div>
+                  <span className="font-medium text-muted-foreground">Sector:</span>
+                  <p className="text-foreground">{compraDetalle.sectorNombre ?? "—"}</p>
+                </div>
+                <div>
+                  <span className="font-medium text-muted-foreground">N° Documento:</span>
+                  <p className="text-foreground">{compraDetalle.numeroDocumento ?? "—"}</p>
+                </div>
+                <div>
+                  <span className="font-medium text-muted-foreground">Método de pago:</span>
+                  <p className="text-foreground">{compraDetalle.metodoPagoNombre ?? "—"}</p>
+                </div>
+                {compraDetalle.observaciones && (
+                  <div className="col-span-2">
+                    <span className="font-medium text-muted-foreground">Observaciones:</span>
+                    <p className="text-foreground">{compraDetalle.observaciones}</p>
+                  </div>
+                )}
+              </div>
+
+              <div>
+                <h3 className="font-medium text-sm mb-2">Productos</h3>
+                <div className="border border-border rounded-md overflow-hidden">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="bg-muted/50 border-b border-border">
+                        <th className="px-3 py-2 text-left font-medium text-muted-foreground">Producto</th>
+                        <th className="px-3 py-2 text-right font-medium text-muted-foreground">Cantidad</th>
+                        <th className="px-3 py-2 text-right font-medium text-muted-foreground">Precio Unit.</th>
+                        <th className="px-3 py-2 text-right font-medium text-muted-foreground">Subtotal</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {compraDetalle.items.map((item, idx) => (
+                        <tr key={idx} className="border-b border-border last:border-0">
+                          <td className="px-3 py-2 text-foreground">{item.productoNombre}</td>
+                          <td className="px-3 py-2 text-right text-foreground">{item.cantidad}</td>
+                          <td className="px-3 py-2 text-right text-foreground">{formatMoney(item.precioUnitario)}</td>
+                          <td className="px-3 py-2 text-right font-medium text-foreground">{formatMoney(item.subtotal)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <div className="flex justify-between items-center rounded-lg border border-border bg-muted/30 px-4 py-3">
+                <span className="text-sm font-medium text-foreground">Total de la compra</span>
+                <span className="text-lg font-bold text-foreground">{formatMoney(compraDetalle.total)}</span>
+              </div>
+
+              <div className="flex justify-end">
+                <Button type="button" onClick={() => setShowDetalleModal(false)}>Cerrar</Button>
+              </div>
+            </div>
+          ) : null}
         </DialogContent>
       </Dialog>
     </>

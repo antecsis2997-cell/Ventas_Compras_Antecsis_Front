@@ -22,6 +22,7 @@ import ReportesAnuales from "./pages/ReportesAnuales";
 import Solicitudes from "./pages/Solicitudes";
 import Insumos from "./pages/Insumos";
 import Proveedores from "./pages/Proveedores";
+import Categorias from "./pages/Categorias";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -67,6 +68,7 @@ const App = () => (
             <Route path="/usuarios" element={<DashboardLayout><ModuleRoute modulo="USUARIOS"><Usuarios /></ModuleRoute></DashboardLayout>} />
             <Route path="/clientes" element={<DashboardLayout><ModuleRoute modulo="CLIENTES"><Clientes /></ModuleRoute></DashboardLayout>} />
             <Route path="/proveedores" element={<DashboardLayout><ModuleRoute modulo="PROVEEDORES"><Proveedores /></ModuleRoute></DashboardLayout>} />
+            <Route path="/categorias" element={<DashboardLayout><ModuleRoute modulo="PRODUCTOS"><Categorias /></ModuleRoute></DashboardLayout>} />
             <Route path="/sectores" element={<DashboardLayout><SectoresRoute /></DashboardLayout>} />
             <Route path="/localizacion" element={<DashboardLayout><PlaceholderPage title="Localización" subtitle="Gestión de ubicaciones" /></DashboardLayout>} />
             <Route path="/solicitudes" element={<DashboardLayout><ModuleRoute modulo="SOLICITUDES_STOCK"><Solicitudes /></ModuleRoute></DashboardLayout>} />
