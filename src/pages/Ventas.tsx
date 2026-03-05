@@ -39,6 +39,11 @@ interface VentaDetalle {
   moneda: string;
   metodoPagoNombre: string | null;
   conCuotas: boolean | null;
+  requiereDelivery?: boolean | null;
+  tipoEntrega?: string | null;
+  direccionEntrega?: string | null;
+  estadoEntrega?: string | null;
+  entregadoPorNombre?: string | null;
   items: {
     productoNombre: string;
     cantidad: number;
@@ -87,6 +92,9 @@ export default function Ventas() {
   const [numeroDocumento, setNumeroDocumento] = useState("");
   const [monedaVenta, setMonedaVenta] = useState<"PEN" | "USD">("PEN");
   const [conCuotas, setConCuotas] = useState(false);
+  const [requiereDelivery, setRequiereDelivery] = useState(false);
+  const [tipoEntrega, setTipoEntrega] = useState<"INMEDIATA" | "PROGRAMADA_3_5" | "PROGRAMADA_5_6_MESES">("INMEDIATA");
+  const [direccionEntrega, setDireccionEntrega] = useState("");
   const [searchProducto, setSearchProducto] = useState("");
   const [showDropdown, setShowDropdown] = useState(false);
   const [codigoBarras, setCodigoBarras] = useState("");
@@ -125,6 +133,9 @@ export default function Ventas() {
     setNumeroDocumento("");
     setMonedaVenta("PEN");
     setConCuotas(false);
+    setRequiereDelivery(false);
+    setTipoEntrega("INMEDIATA" as "INMEDIATA" | "PROGRAMADA_3_5" | "PROGRAMADA_5_6_MESES");
+    setDireccionEntrega("");
     setCodigoBarras("");
     setSearchProducto("");
     setShowDropdown(false);
@@ -238,6 +249,12 @@ export default function Ventas() {
     }
     setSaving(true);
     try {
+      if (requiereDelivery && (tipoEntrega === "INMEDIATA" || tipoEntrega === "PROGRAMADA_5_6_MESES") && !direccionEntrega.trim()) {
+        setFormError("La dirección de entrega es obligatoria para este tipo de delivery");
+        setSaving(false);
+        return;
+      }
+
       await api.post("/api/ventas", {
         clienteId: Number(clienteId),
         metodoPagoId: metodoPagoId ? Number(metodoPagoId) : null,
@@ -246,6 +263,9 @@ export default function Ventas() {
         moneda: monedaVenta,
         conCuotas: metodoPagoId && metodosPago.find((mp) => mp.id === Number(metodoPagoId))?.nombre.toLowerCase().includes("tarjeta") ? conCuotas : null,
         observaciones: null,
+        requiereDelivery: requiereDelivery,
+        tipoEntrega: requiereDelivery ? tipoEntrega : null,
+        direccionEntrega: requiereDelivery && (tipoEntrega === "INMEDIATA" || tipoEntrega === "PROGRAMADA_5_6_MESES") ? direccionEntrega.trim() : null,
         items: carrito.map((c) => ({
           productoId: c.productoId,
           cantidad: c.cantidad,
@@ -550,6 +570,62 @@ export default function Ventas() {
               <span className="text-2xl font-bold text-primary">{formatMoney(calcularTotal(), monedaVenta)}</span>
             </div>
 
+            {/* Delivery - Botón Añadir delivery */}
+            <div className="rounded-lg border border-border p-4 space-y-3">
+              {!requiereDelivery ? (
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setRequiereDelivery(true)}
+                  className="w-full justify-center"
+                >
+                  Añadir delivery
+                </Button>
+              ) : (
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium">Delivery activado</span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setRequiereDelivery(false);
+                        setTipoEntrega("INMEDIATA");
+                        setDireccionEntrega("");
+                      }}
+                      className="text-xs text-destructive hover:underline"
+                    >
+                      Quitar delivery
+                    </button>
+                  </div>
+                  <div>
+                    <label className="text-xs text-muted-foreground">Tipo de entrega</label>
+                    <select
+                      className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                      value={tipoEntrega}
+                      onChange={(e) => setTipoEntrega(e.target.value as "INMEDIATA" | "PROGRAMADA_3_5" | "PROGRAMADA_5_6_MESES")}
+                    >
+                      <option value="INMEDIATA">Entrega inmediata</option>
+                      <option value="PROGRAMADA_5_6_MESES">5 a 6 meses</option>
+                      <option value="PROGRAMADA_3_5">3 a 5 días</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-xs text-muted-foreground">Dirección de entrega *</label>
+                    <input
+                      type="text"
+                      placeholder="Ej: Av. Principal 123, Distrito..."
+                      className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                      value={direccionEntrega}
+                      onChange={(e) => setDireccionEntrega(e.target.value)}
+                    />
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    La venta quedará en estado PENDIENTE hasta que Logística marque la entrega como completada.
+                  </p>
+                </div>
+              )}
+            </div>
+
             {/* Cliente */}
             <div>
               <label className="text-sm font-medium">Cliente *</label>
@@ -708,6 +784,32 @@ export default function Ventas() {
                     <span className="font-medium text-muted-foreground">Cuotas:</span>
                     <p className="text-foreground">{ventaDetalle.conCuotas ? "Con cuotas" : "Sin cuotas"}</p>
                   </div>
+                )}
+                {ventaDetalle.requiereDelivery && (
+                  <>
+                    <div>
+                      <span className="font-medium text-muted-foreground">Tipo entrega:</span>
+                      <p className="text-foreground">
+                        {ventaDetalle.tipoEntrega === "INMEDIATA" ? "Inmediata" : ventaDetalle.tipoEntrega === "PROGRAMADA_5_6_MESES" ? "5 a 6 meses" : "3 a 5 días"}
+                      </p>
+                    </div>
+                    <div>
+                      <span className="font-medium text-muted-foreground">Estado entrega:</span>
+                      <p className="text-foreground">{ventaDetalle.estadoEntrega ?? "—"}</p>
+                    </div>
+                    {ventaDetalle.entregadoPorNombre && (
+                      <div>
+                        <span className="font-medium text-muted-foreground">Entregado por:</span>
+                        <p className="text-foreground">{ventaDetalle.entregadoPorNombre}</p>
+                      </div>
+                    )}
+                    {ventaDetalle.direccionEntrega && (
+                      <div className="col-span-2">
+                        <span className="font-medium text-muted-foreground">Dirección:</span>
+                        <p className="text-foreground">{ventaDetalle.direccionEntrega}</p>
+                      </div>
+                    )}
+                  </>
                 )}
               </div>
 

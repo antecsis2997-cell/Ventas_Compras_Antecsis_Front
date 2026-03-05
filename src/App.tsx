@@ -23,6 +23,11 @@ import Solicitudes from "./pages/Solicitudes";
 import Insumos from "./pages/Insumos";
 import Proveedores from "./pages/Proveedores";
 import Categorias from "./pages/Categorias";
+import Entregas from "./pages/Entregas";
+import PuntoVenta from "./pages/PuntoVenta";
+import VistaPantalla1 from "./pages/VistaPantalla1";
+import VistaPantalla2 from "./pages/VistaPantalla2";
+import MetricasLogistica from "./pages/MetricasLogistica";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -63,6 +68,9 @@ const App = () => (
             <Route path="/" element={<DashboardLayout><ModuleRoute modulo="DASHBOARD"><Index /></ModuleRoute></DashboardLayout>} />
             <Route path="/productos" element={<DashboardLayout><ModuleRoute modulo="PRODUCTOS"><Productos /></ModuleRoute></DashboardLayout>} />
             <Route path="/ventas" element={<DashboardLayout><ModuleRoute modulo="VENTAS"><Ventas /></ModuleRoute></DashboardLayout>} />
+            <Route path="/punto-venta" element={<DashboardLayout><ModuleRoute modulo="VENTAS"><PuntoVenta /></ModuleRoute></DashboardLayout>} />
+            <Route path="/vista-pantalla-1" element={<DashboardLayout><ModuleRoute modulo="DASHBOARD"><VistaPantalla1 /></ModuleRoute></DashboardLayout>} />
+            <Route path="/vista-pantalla-2" element={<DashboardLayout><ModuleRoute modulo="DASHBOARD"><VistaPantalla2 /></ModuleRoute></DashboardLayout>} />
             <Route path="/compras" element={<DashboardLayout><ModuleRoute modulo="COMPRAS"><Compras /></ModuleRoute></DashboardLayout>} />
             <Route path="/insumos" element={<DashboardLayout><ModuleRoute modulo="INVENTARIO"><Insumos /></ModuleRoute></DashboardLayout>} />
             <Route path="/usuarios" element={<DashboardLayout><ModuleRoute modulo="USUARIOS"><Usuarios /></ModuleRoute></DashboardLayout>} />
@@ -72,6 +80,10 @@ const App = () => (
             <Route path="/sectores" element={<DashboardLayout><SectoresRoute /></DashboardLayout>} />
             <Route path="/localizacion" element={<DashboardLayout><PlaceholderPage title="Localización" subtitle="Gestión de ubicaciones" /></DashboardLayout>} />
             <Route path="/solicitudes" element={<DashboardLayout><ModuleRoute modulo="SOLICITUDES_STOCK"><Solicitudes /></ModuleRoute></DashboardLayout>} />
+            <Route path="/entregas" element={<DashboardLayout><ModuleRoute modulo="LOGISTICA_ENTREGAS"><Entregas /></ModuleRoute></DashboardLayout>} />
+            <Route path="/delivery" element={<DashboardLayout><ModuleRoute modulo="LOGISTICA_ENTREGAS"><Entregas /></ModuleRoute></DashboardLayout>} />
+            <Route path="/entregas/5-6-meses" element={<DashboardLayout><ModuleRoute modulo="LOGISTICA_ENTREGAS"><Entregas /></ModuleRoute></DashboardLayout>} />
+            <Route path="/logistica/metricas" element={<DashboardLayout><ModuleRoute modulo="LOGISTICA_ENTREGAS"><MetricasLogistica /></ModuleRoute></DashboardLayout>} />
             <Route path="/mensajes" element={<DashboardLayout><ModuleRoute modulo="MENSAJES"><PlaceholderPage title="Mensajes" subtitle="CHAT / mensajes" /></ModuleRoute></DashboardLayout>} />
             <Route path="/historial-pedidos" element={<DashboardLayout><ModuleRoute modulo="HISTORIAL_PEDIDOS"><PlaceholderPage title="Historial de pedidos" subtitle="Consulta de pedidos" /></ModuleRoute></DashboardLayout>} />
             <Route path="/reportes" element={<DashboardLayout><ModuleRoute modulo="REPORTES"><Reportes /></ModuleRoute></DashboardLayout>} />

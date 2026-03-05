@@ -33,7 +33,17 @@ interface SidebarItem {
 
 const menuItems: SidebarItem[] = [
   // Vista general
-  { title: "Dashboard", url: "/", icon: LayoutDashboard, moduloCodigo: "DASHBOARD" },
+  {
+    title: "Dashboard",
+    url: "/",
+    icon: LayoutDashboard,
+    moduloCodigo: "DASHBOARD",
+    children: [
+      { title: "Inicio", url: "/" },
+      { title: "Vista Pantalla 1", url: "/vista-pantalla-1" },
+      { title: "Vista Pantalla 2", url: "/vista-pantalla-2" },
+    ],
+  },
   // Catálogo
   { title: "Productos", url: "/productos", icon: Package, moduloCodigo: "PRODUCTOS" },
   { title: "Categorías", url: "/categorias", icon: Tags, moduloCodigo: "PRODUCTOS" },
@@ -41,6 +51,7 @@ const menuItems: SidebarItem[] = [
   // Operaciones (primero compras, luego ventas)
   { title: "Compras", url: "/compras", icon: Truck, moduloCodigo: "COMPRAS" },
   { title: "Ventas", url: "/ventas", icon: ShoppingCart, moduloCodigo: "VENTAS" },
+  { title: "Punto de Venta", url: "/punto-venta", icon: ShoppingCart, moduloCodigo: "VENTAS" },
   { title: "Facturación", url: "/facturacion", icon: FileText, moduloCodigo: "VENTAS" },
   // Personas
   { title: "Clientes", url: "/clientes", icon: UserCircle2, moduloCodigo: "CLIENTES" },
@@ -56,6 +67,19 @@ const menuItems: SidebarItem[] = [
       { title: "Ventas Diarias", url: "/reportes/diarias" },
       { title: "Ventas Mensuales", url: "/reportes/mensuales" },
       { title: "Ventas Anuales", url: "/reportes/anuales" },
+    ],
+  },
+  // Logística
+  {
+    title: "Logística",
+    url: "/entregas",
+    icon: Truck,
+    moduloCodigo: "LOGISTICA_ENTREGAS",
+    children: [
+      { title: "Entregas (3 a 5 días)", url: "/entregas" },
+      { title: "Delivery (Inmediata)", url: "/delivery" },
+      { title: "5 a 6 meses", url: "/entregas/5-6-meses" },
+      { title: "Métricas entregas", url: "/logistica/metricas" },
     ],
   },
   // Comunicación
@@ -107,7 +131,7 @@ export function AdminSidebar({ collapsed, onToggle }: AdminSidebarProps) {
   const location = useLocation();
   const { rolNombre, hasModule } = useAuth();
   const isSuperusuario = rolNombre === "SUPERUSUARIO";
-  const [openMenus, setOpenMenus] = useState<string[]>(["Reportes"]);
+  const [openMenus, setOpenMenus] = useState<string[]>(["Reportes", "Logística"]);
 
   const visibleMenuItems = menuItems.filter((item) => {
     if (item.requiresSuperadmin) return isSuperusuario;
