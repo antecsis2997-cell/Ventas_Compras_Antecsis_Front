@@ -20,6 +20,8 @@ import {
   MessageSquare,
   History,
   Tags,
+  FileCheck,
+  KeyRound,
 } from "lucide-react";
 
 interface SidebarItem {
@@ -29,17 +31,19 @@ interface SidebarItem {
   moduloCodigo?: string;
   children?: { title: string; url: string }[];
   requiresSuperadmin?: boolean;
+  /** Si se define, mostrar solo para estos roles (ADMIN, SOPORTE, SUPERUSUARIO) */
+  rolesPermitidos?: string[];
 }
 
 const menuItems: SidebarItem[] = [
   // Vista general
   {
     title: "Dashboard",
-    url: "/",
+    url: "/dashboard",
     icon: LayoutDashboard,
     moduloCodigo: "DASHBOARD",
     children: [
-      { title: "Inicio", url: "/" },
+      { title: "Inicio", url: "/dashboard" },
       { title: "Vista Pantalla 1", url: "/vista-pantalla-1" },
       { title: "Vista Pantalla 2", url: "/vista-pantalla-2" },
     ],
@@ -87,7 +91,9 @@ const menuItems: SidebarItem[] = [
   { title: "Mensajes", url: "/mensajes", icon: MessageSquare, moduloCodigo: "MENSAJES" },
   // Administración
   { title: "Usuarios", url: "/usuarios", icon: Users, moduloCodigo: "USUARIOS" },
+  { title: "Solicitudes de recuperación", url: "/solicitudes-recuperacion", icon: KeyRound, rolesPermitidos: ["SUPERUSUARIO", "ADMIN", "SOPORTE"] },
   { title: "Sectores", url: "/sectores", icon: Building2, requiresSuperadmin: true },
+  { title: "Suscripciones", url: "/suscripciones", icon: FileCheck, requiresSuperadmin: true },
 ];
 
 function SidebarUser() {
@@ -135,6 +141,7 @@ export function AdminSidebar({ collapsed, onToggle }: AdminSidebarProps) {
 
   const visibleMenuItems = menuItems.filter((item) => {
     if (item.requiresSuperadmin) return isSuperusuario;
+    if (item.rolesPermitidos) return rolNombre != null && item.rolesPermitidos.includes(rolNombre);
     if (item.moduloCodigo) return hasModule(item.moduloCodigo);
     return true;
   });

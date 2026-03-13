@@ -23,6 +23,9 @@ interface ClienteRow {
   tipoDocumento: string | null;
   documento: string | null;
   direccion: string | null;
+  distrito?: string | null;
+  provincia?: string | null;
+  pais?: string | null;
   activo: boolean | null;
 }
 
@@ -33,6 +36,9 @@ const emptyForm = {
   tipoDocumento: "",
   documento: "",
   direccion: "",
+  distrito: "",
+  provincia: "",
+  pais: "",
 };
 
 const DEBOUNCE_MS = 350;
@@ -46,7 +52,7 @@ export default function Clientes() {
   const [loading, setLoading] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
-  const [form, setForm] = useState(emptyForm);
+  const [form, setForm] = useState<typeof emptyForm>(emptyForm);
   const [saving, setSaving] = useState(false);
   const [formError, setFormError] = useState("");
 
@@ -98,6 +104,9 @@ export default function Clientes() {
       tipoDocumento: c.tipoDocumento ?? "",
       documento: c.documento ?? "",
       direccion: c.direccion ?? "",
+      distrito: c.distrito ?? "",
+      provincia: c.provincia ?? "",
+      pais: c.pais ?? "",
     });
     setFormError("");
     setDialogOpen(true);
@@ -125,6 +134,9 @@ export default function Clientes() {
         tipoDocumento: form.tipoDocumento?.trim() || null,
         documento: form.documento?.trim() || null,
         direccion: form.direccion?.trim() || null,
+        distrito: form.distrito?.trim() || null,
+        provincia: form.provincia?.trim() || null,
+        pais: form.pais?.trim() || null,
       };
       if (editingId) {
         await api.put("/api/clientes/" + editingId, body);
@@ -190,6 +202,7 @@ export default function Clientes() {
                     <th className="text-left p-3 font-medium">Tipo doc.</th>
                     <th className="text-left p-3 font-medium">RUC / DNI</th>
                     <th className="text-left p-3 font-medium">Dirección</th>
+                    <th className="text-left p-3 font-medium">Zona</th>
                     <th className="text-right p-3 font-medium">Acciones</th>
                   </tr>
                 </thead>
@@ -212,6 +225,9 @@ export default function Clientes() {
                         <td className="p-3">{c.documento || "—"}</td>
                         <td className="p-3 max-w-[180px] truncate" title={c.direccion || ""}>
                           {c.direccion || "—"}
+                        </td>
+                        <td className="p-3 max-w-[180px] truncate" title={`${c.distrito ?? ""} ${c.provincia ?? ""} ${c.pais ?? ""}`}>
+                          {[c.distrito, c.provincia, c.pais].filter(Boolean).join(" / ") || "—"}
                         </td>
                         <td className="p-3 text-right">
                           <Button variant="ghost" size="icon" onClick={() => openEdit(c)} title="Editar">
@@ -315,6 +331,38 @@ export default function Clientes() {
                 onChange={(e) => setForm((f) => ({ ...f, direccion: e.target.value }))}
                 placeholder="Opcional"
               />
+            </div>
+            <div className="grid grid-cols-3 gap-3">
+              <div>
+                <label className="text-sm font-medium">Distrito</label>
+                <input
+                  type="text"
+                  className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                  value={form.distrito}
+                  onChange={(e) => setForm((f) => ({ ...f, distrito: e.target.value }))}
+                  placeholder="Opcional"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium">Provincia</label>
+                <input
+                  type="text"
+                  className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                  value={form.provincia}
+                  onChange={(e) => setForm((f) => ({ ...f, provincia: e.target.value }))}
+                  placeholder="Opcional"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium">País</label>
+                <input
+                  type="text"
+                  className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                  value={form.pais}
+                  onChange={(e) => setForm((f) => ({ ...f, pais: e.target.value }))}
+                  placeholder="Opcional"
+                />
+              </div>
             </div>
             {formError && <p className="text-sm text-destructive">{formError}</p>}
             <div className="flex justify-end gap-2">

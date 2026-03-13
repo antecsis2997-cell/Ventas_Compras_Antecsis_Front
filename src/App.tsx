@@ -7,12 +7,16 @@ import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { AdminLayout } from "@/components/AdminLayout";
 import Login from "./pages/Login";
+import ResetPassword from "./pages/ResetPassword";
+import Landing from "./pages/Landing";
+import Planes from "./pages/Planes";
 import Index from "./pages/Index";
 import Productos from "./pages/Productos";
 import Ventas from "./pages/Ventas";
 import Compras from "./pages/Compras";
 import Usuarios from "./pages/Usuarios";
 import Sectores from "./pages/Sectores";
+import Suscripciones from "./pages/Suscripciones";
 import Clientes from "./pages/Clientes";
 import { PlaceholderPage } from "./components/PlaceholderPage";
 import Reportes from "./pages/Reportes";
@@ -28,6 +32,7 @@ import PuntoVenta from "./pages/PuntoVenta";
 import VistaPantalla1 from "./pages/VistaPantalla1";
 import VistaPantalla2 from "./pages/VistaPantalla2";
 import MetricasLogistica from "./pages/MetricasLogistica";
+import SolicitudesRecuperacion from "./pages/SolicitudesRecuperacion";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -35,7 +40,7 @@ const queryClient = new QueryClient();
 function ModuleRoute({ modulo, children }: { modulo: string; children: React.ReactNode }) {
   const { hasModule } = useAuth();
   if (!hasModule(modulo)) {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/dashboard" replace />;
   }
   return <>{children}</>;
 }
@@ -43,9 +48,25 @@ function ModuleRoute({ modulo, children }: { modulo: string; children: React.Rea
 function SectoresRoute() {
   const { rolNombre } = useAuth();
   if (rolNombre !== "SUPERUSUARIO") {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/dashboard" replace />;
   }
   return <Sectores />;
+}
+
+function SuscripcionesRoute() {
+  const { rolNombre } = useAuth();
+  if (rolNombre !== "SUPERUSUARIO") {
+    return <Navigate to="/dashboard" replace />;
+  }
+  return <Suscripciones />;
+}
+
+function SolicitudesRecuperacionRoute() {
+  const { rolNombre } = useAuth();
+  if (rolNombre !== "SUPERUSUARIO" && rolNombre !== "ADMIN" && rolNombre !== "SOPORTE") {
+    return <Navigate to="/dashboard" replace />;
+  }
+  return <SolicitudesRecuperacion />;
 }
 
 function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -64,8 +85,11 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <Routes>
+            <Route path="/" element={<Landing />} />
             <Route path="/login" element={<Login />} />
-            <Route path="/" element={<DashboardLayout><ModuleRoute modulo="DASHBOARD"><Index /></ModuleRoute></DashboardLayout>} />
+            <Route path="/planes" element={<Planes />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
+            <Route path="/dashboard" element={<DashboardLayout><ModuleRoute modulo="DASHBOARD"><Index /></ModuleRoute></DashboardLayout>} />
             <Route path="/productos" element={<DashboardLayout><ModuleRoute modulo="PRODUCTOS"><Productos /></ModuleRoute></DashboardLayout>} />
             <Route path="/ventas" element={<DashboardLayout><ModuleRoute modulo="VENTAS"><Ventas /></ModuleRoute></DashboardLayout>} />
             <Route path="/punto-venta" element={<DashboardLayout><ModuleRoute modulo="VENTAS"><PuntoVenta /></ModuleRoute></DashboardLayout>} />
@@ -74,10 +98,12 @@ const App = () => (
             <Route path="/compras" element={<DashboardLayout><ModuleRoute modulo="COMPRAS"><Compras /></ModuleRoute></DashboardLayout>} />
             <Route path="/insumos" element={<DashboardLayout><ModuleRoute modulo="INVENTARIO"><Insumos /></ModuleRoute></DashboardLayout>} />
             <Route path="/usuarios" element={<DashboardLayout><ModuleRoute modulo="USUARIOS"><Usuarios /></ModuleRoute></DashboardLayout>} />
+            <Route path="/solicitudes-recuperacion" element={<DashboardLayout><SolicitudesRecuperacionRoute /></DashboardLayout>} />
             <Route path="/clientes" element={<DashboardLayout><ModuleRoute modulo="CLIENTES"><Clientes /></ModuleRoute></DashboardLayout>} />
             <Route path="/proveedores" element={<DashboardLayout><ModuleRoute modulo="PROVEEDORES"><Proveedores /></ModuleRoute></DashboardLayout>} />
             <Route path="/categorias" element={<DashboardLayout><ModuleRoute modulo="PRODUCTOS"><Categorias /></ModuleRoute></DashboardLayout>} />
             <Route path="/sectores" element={<DashboardLayout><SectoresRoute /></DashboardLayout>} />
+            <Route path="/suscripciones" element={<DashboardLayout><SuscripcionesRoute /></DashboardLayout>} />
             <Route path="/localizacion" element={<DashboardLayout><PlaceholderPage title="Localización" subtitle="Gestión de ubicaciones" /></DashboardLayout>} />
             <Route path="/solicitudes" element={<DashboardLayout><ModuleRoute modulo="SOLICITUDES_STOCK"><Solicitudes /></ModuleRoute></DashboardLayout>} />
             <Route path="/entregas" element={<DashboardLayout><ModuleRoute modulo="LOGISTICA_ENTREGAS"><Entregas /></ModuleRoute></DashboardLayout>} />
@@ -91,6 +117,7 @@ const App = () => (
             <Route path="/reportes/mensuales" element={<DashboardLayout><ModuleRoute modulo="REPORTES"><ReportesMensuales /></ModuleRoute></DashboardLayout>} />
             <Route path="/reportes/anuales" element={<DashboardLayout><ModuleRoute modulo="REPORTES"><ReportesAnuales /></ModuleRoute></DashboardLayout>} />
             <Route path="/facturacion" element={<Navigate to="/ventas" replace />} />
+            <Route path="/inicio" element={<Navigate to="/dashboard" replace />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

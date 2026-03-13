@@ -95,6 +95,7 @@ export default function Ventas() {
   const [requiereDelivery, setRequiereDelivery] = useState(false);
   const [tipoEntrega, setTipoEntrega] = useState<"INMEDIATA" | "PROGRAMADA_3_5" | "PROGRAMADA_5_6_MESES">("INMEDIATA");
   const [direccionEntrega, setDireccionEntrega] = useState("");
+  const [dniCmr, setDniCmr] = useState("");
   const [searchProducto, setSearchProducto] = useState("");
   const [showDropdown, setShowDropdown] = useState(false);
   const [codigoBarras, setCodigoBarras] = useState("");
@@ -136,6 +137,7 @@ export default function Ventas() {
     setRequiereDelivery(false);
     setTipoEntrega("INMEDIATA" as "INMEDIATA" | "PROGRAMADA_3_5" | "PROGRAMADA_5_6_MESES");
     setDireccionEntrega("");
+    setDniCmr("");
     setCodigoBarras("");
     setSearchProducto("");
     setShowDropdown(false);
@@ -266,6 +268,7 @@ export default function Ventas() {
         requiereDelivery: requiereDelivery,
         tipoEntrega: requiereDelivery ? tipoEntrega : null,
         direccionEntrega: requiereDelivery && (tipoEntrega === "INMEDIATA" || tipoEntrega === "PROGRAMADA_5_6_MESES") ? direccionEntrega.trim() : null,
+        dniCmr: dniCmr.trim() || null,
         items: carrito.map((c) => ({
           productoId: c.productoId,
           cantidad: c.cantidad,
@@ -407,28 +410,30 @@ export default function Ventas() {
           </DialogHeader>
           {formError && <p className="text-sm text-destructive">{formError}</p>}
 
-          <div className="space-y-4">
-            {/* Moneda */}
-            <div>
-              <label className="text-sm font-medium">Moneda</label>
-              <div className="mt-2 flex rounded-lg border border-input overflow-hidden w-fit">
-                <button
-                  type="button"
-                  onClick={() => { if (monedaVenta !== "PEN") { setMonedaVenta("PEN"); setCarrito([]); } }}
-                  className={`px-4 py-2 text-sm font-medium transition-colors ${monedaVenta === "PEN" ? "bg-primary text-primary-foreground" : "bg-background text-muted-foreground hover:bg-muted"}`}
-                >
-                  S/ Soles
-                </button>
-                <button
-                  type="button"
-                  onClick={() => { if (monedaVenta !== "USD") { setMonedaVenta("USD"); setCarrito([]); } }}
-                  className={`px-4 py-2 text-sm font-medium transition-colors ${monedaVenta === "USD" ? "bg-primary text-primary-foreground" : "bg-background text-muted-foreground hover:bg-muted"}`}
-                >
-                  $ Dólares
-                </button>
-              </div>
-            </div>
-
+          <div className="space-y-6">
+            <div className="grid gap-6 lg:grid-cols-[3fr,2fr]">
+              {/* Columna izquierda: Productos y carrito */}
+              <div className="space-y-4">
+                <div className="rounded-xl border border-border bg-muted/5 p-4 shadow-sm">
+                  <div className="flex items-center justify-between gap-4 mb-4">
+                    <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Productos</span>
+                    <div className="flex rounded-lg border border-input overflow-hidden">
+                      <button
+                        type="button"
+                        onClick={() => { if (monedaVenta !== "PEN") { setMonedaVenta("PEN"); setCarrito([]); } }}
+                        className={`px-3 py-1.5 text-xs font-medium transition-colors ${monedaVenta === "PEN" ? "bg-primary text-primary-foreground" : "bg-background text-muted-foreground hover:bg-muted"}`}
+                      >
+                        S/ Soles
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => { if (monedaVenta !== "USD") { setMonedaVenta("USD"); setCarrito([]); } }}
+                        className={`px-3 py-1.5 text-xs font-medium transition-colors ${monedaVenta === "USD" ? "bg-primary text-primary-foreground" : "bg-background text-muted-foreground hover:bg-muted"}`}
+                      >
+                        $ Dólares
+                      </button>
+                    </div>
+                  </div>
             {/* Buscar Producto */}
             <div>
               <label className="text-sm font-medium">Buscar Producto</label>
@@ -569,65 +574,14 @@ export default function Ventas() {
               <span className="text-base font-semibold text-foreground">Total</span>
               <span className="text-2xl font-bold text-primary">{formatMoney(calcularTotal(), monedaVenta)}</span>
             </div>
-
-            {/* Delivery - Botón Añadir delivery */}
-            <div className="rounded-lg border border-border p-4 space-y-3">
-              {!requiereDelivery ? (
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setRequiereDelivery(true)}
-                  className="w-full justify-center"
-                >
-                  Añadir delivery
-                </Button>
-              ) : (
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">Delivery activado</span>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setRequiereDelivery(false);
-                        setTipoEntrega("INMEDIATA");
-                        setDireccionEntrega("");
-                      }}
-                      className="text-xs text-destructive hover:underline"
-                    >
-                      Quitar delivery
-                    </button>
-                  </div>
-                  <div>
-                    <label className="text-xs text-muted-foreground">Tipo de entrega</label>
-                    <select
-                      className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                      value={tipoEntrega}
-                      onChange={(e) => setTipoEntrega(e.target.value as "INMEDIATA" | "PROGRAMADA_3_5" | "PROGRAMADA_5_6_MESES")}
-                    >
-                      <option value="INMEDIATA">Entrega inmediata</option>
-                      <option value="PROGRAMADA_5_6_MESES">5 a 6 meses</option>
-                      <option value="PROGRAMADA_3_5">3 a 5 días</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="text-xs text-muted-foreground">Dirección de entrega *</label>
-                    <input
-                      type="text"
-                      placeholder="Ej: Av. Principal 123, Distrito..."
-                      className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                      value={direccionEntrega}
-                      onChange={(e) => setDireccionEntrega(e.target.value)}
-                    />
-                  </div>
-                  <p className="text-xs text-muted-foreground">
-                    La venta quedará en estado PENDIENTE hasta que Logística marque la entrega como completada.
-                  </p>
                 </div>
-              )}
-            </div>
+              </div>
 
-            {/* Cliente */}
-            <div>
+              {/* Columna derecha: Cliente, Pago, Documento, Delivery */}
+              <div className="space-y-4">
+                <div className="rounded-xl border border-border bg-muted/5 p-4 shadow-sm space-y-4">
+                  <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground block">Cliente</span>
+                  <div>
               <label className="text-sm font-medium">Cliente *</label>
               <input
                 type="text"
@@ -656,10 +610,12 @@ export default function Ventas() {
                     </option>
                   ))}
               </select>
-            </div>
+                  </div>
+                </div>
 
-            {/* Método de Pago */}
-            <div className="grid grid-cols-2 gap-4">
+                <div className="rounded-xl border border-border bg-muted/5 p-4 shadow-sm space-y-4">
+                  <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground block">Pago y Documento</span>
+                  <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="text-sm font-medium">Método de pago</label>
                 <select
@@ -685,6 +641,18 @@ export default function Ventas() {
                   <option value="BOLETA">Boleta</option>
                 </select>
               </div>
+            </div>
+
+            {/* DNI CMR para puntos */}
+            <div>
+              <label className="text-sm font-medium">DNI para puntos CMR (opcional)</label>
+              <input
+                type="text"
+                className="mt-2 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                value={dniCmr}
+                onChange={(e) => setDniCmr(e.target.value)}
+                placeholder="Ej: 10152669"
+              />
             </div>
 
             {/* Cuotas si es tarjeta */}
@@ -719,6 +687,66 @@ export default function Ventas() {
                 onChange={(e) => setNumeroDocumento(e.target.value)}
                 placeholder="Ej: F001-00001"
               />
+            </div>
+                </div>
+
+                {/* Delivery */}
+                <div className="rounded-xl border border-border bg-muted/5 p-4 shadow-sm space-y-3">
+                  <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground block">Delivery</span>
+                  {!requiereDelivery ? (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => setRequiereDelivery(true)}
+                      className="w-full justify-center"
+                    >
+                      Añadir delivery
+                    </Button>
+                  ) : (
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-medium">Delivery activado</span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setRequiereDelivery(false);
+                            setTipoEntrega("INMEDIATA");
+                            setDireccionEntrega("");
+                          }}
+                          className="text-xs text-destructive hover:underline"
+                        >
+                          Quitar delivery
+                        </button>
+                      </div>
+                      <div>
+                        <label className="text-xs text-muted-foreground">Tipo de entrega</label>
+                        <select
+                          className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                          value={tipoEntrega}
+                          onChange={(e) => setTipoEntrega(e.target.value as "INMEDIATA" | "PROGRAMADA_3_5" | "PROGRAMADA_5_6_MESES")}
+                        >
+                          <option value="INMEDIATA">Entrega inmediata</option>
+                          <option value="PROGRAMADA_5_6_MESES">5 a 6 meses</option>
+                          <option value="PROGRAMADA_3_5">3 a 5 días</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="text-xs text-muted-foreground">Dirección de entrega *</label>
+                        <input
+                          type="text"
+                          placeholder="Ej: Av. Principal 123, Distrito..."
+                          className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                          value={direccionEntrega}
+                          onChange={(e) => setDireccionEntrega(e.target.value)}
+                        />
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        La venta quedará en estado PENDIENTE hasta que Logística marque la entrega como completada.
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
 
             {/* Botones */}

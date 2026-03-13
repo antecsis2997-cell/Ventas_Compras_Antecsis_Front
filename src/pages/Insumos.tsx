@@ -1,4 +1,4 @@
-import { Search, AlertTriangle, ArrowUpCircle, ArrowDownCircle, RefreshCw, History } from "lucide-react";
+import { Search, AlertTriangle, ArrowUpCircle, ArrowDownCircle, RefreshCw, History, Image } from "lucide-react";
 import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -7,6 +7,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+} from "@/components/ui/hover-card";
 import { api } from "@/lib/api";
 import { formatMoney, type Moneda } from "@/lib/utils";
 
@@ -21,6 +26,7 @@ interface InventarioRow {
   unidadMedida: string | null;
   stockMinimoAlerta: number | null;
   sectorNombre: string | null;
+  imagenUrl?: string | null;
 }
 
 interface MovimientoRow {
@@ -204,6 +210,7 @@ export default function Insumos() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-border bg-muted/50">
+                    <th className="px-5 py-3 text-left font-medium text-muted-foreground w-16">Imagen</th>
                     <th className="px-5 py-3 text-left font-medium text-muted-foreground">ID</th>
                     <th className="px-5 py-3 text-left font-medium text-muted-foreground">Código</th>
                     <th className="px-5 py-3 text-left font-medium text-muted-foreground">Producto</th>
@@ -216,15 +223,41 @@ export default function Insumos() {
                 </thead>
                 <tbody>
                   {loading ? (
-                    <tr><td colSpan={8} className="px-5 py-4 text-center text-muted-foreground">Cargando...</td></tr>
+                    <tr><td colSpan={9} className="px-5 py-4 text-center text-muted-foreground">Cargando...</td></tr>
                   ) : filtered.length === 0 ? (
-                    <tr><td colSpan={8} className="px-5 py-4 text-center text-muted-foreground">No hay productos</td></tr>
+                    <tr><td colSpan={9} className="px-5 py-4 text-center text-muted-foreground">No hay productos</td></tr>
                   ) : (
                     filtered.map((i) => (
                       <tr
                         key={i.productoId}
                         className={`border-b border-border last:border-0 hover:bg-muted/30 transition-colors ${isStockBajo(i) ? "bg-destructive/5" : ""}`}
                       >
+                        <td className="px-5 py-2">
+                          {i.imagenUrl ? (
+                            <HoverCard openDelay={200} closeDelay={100}>
+                              <HoverCardTrigger asChild>
+                                <button type="button" className="block rounded border border-border overflow-hidden hover:ring-2 hover:ring-primary/30 transition-shadow">
+                                  <img
+                                    src={i.imagenUrl}
+                                    alt={i.nombre}
+                                    className="h-10 w-10 object-cover"
+                                    onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.style.display = "none"; e.currentTarget.nextElementSibling?.classList.remove("hidden"); }}
+                                  />
+                                </button>
+                              </HoverCardTrigger>
+                              <HoverCardContent side="right" className="w-auto p-2">
+                                <img
+                                  src={i.imagenUrl}
+                                  alt={i.nombre}
+                                  className="h-64 w-64 object-cover rounded border border-border"
+                                />
+                              </HoverCardContent>
+                            </HoverCard>
+                          ) : null}
+                          <div className={`h-10 w-10 rounded border border-border bg-muted/50 flex items-center justify-center ${i.imagenUrl ? "hidden" : ""}`} data-fallback>
+                            <Image className="h-5 w-5 text-muted-foreground" />
+                          </div>
+                        </td>
                         <td className="px-5 py-3 font-mono text-muted-foreground">{i.productoId}</td>
                         <td className="px-5 py-3 text-muted-foreground">{i.codigo ?? "—"}</td>
                         <td className="px-5 py-3 font-medium text-foreground">

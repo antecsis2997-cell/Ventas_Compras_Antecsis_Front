@@ -44,6 +44,7 @@ export default function PuntoVenta() {
   const [metodoPagoId, setMetodoPagoId] = useState("");
   const [tipoDocumento, setTipoDocumento] = useState("");
   const [numeroDocumento, setNumeroDocumento] = useState("");
+  const [dniCmr, setDniCmr] = useState("");
   const [showCheckout, setShowCheckout] = useState(false);
   const [saving, setSaving] = useState(false);
   const [formError, setFormError] = useState("");
@@ -128,6 +129,7 @@ export default function PuntoVenta() {
     setTipoDocumento("");
     setNumeroDocumento("");
     setMetodoPagoId("");
+    setDniCmr("");
     setShowCheckout(true);
   };
 
@@ -150,6 +152,7 @@ export default function PuntoVenta() {
         requiereDelivery: false,
         tipoEntrega: null,
         direccionEntrega: null,
+        dniCmr: dniCmr.trim() || null,
         items: carrito.map((c) => ({
           productoId: c.productoId,
           cantidad: c.cantidad,
@@ -390,6 +393,16 @@ export default function PuntoVenta() {
                 value={numeroDocumento}
                 onChange={(e) => setNumeroDocumento(e.target.value)}
                 placeholder="Ej: B001-00001"
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium">DNI para puntos CMR (opcional)</label>
+              <input
+                type="text"
+                className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                value={dniCmr}
+                onChange={(e) => setDniCmr(e.target.value)}
+                placeholder="Ej: 10152669"
               />
             </div>
             <div>

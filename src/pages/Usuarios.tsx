@@ -31,6 +31,7 @@ const ROLES = [
   { value: "VENTAS", label: "Ventas" },
   { value: "LOGISTICA", label: "Logística" },
   { value: "ADMINISTRACION", label: "Administración" },
+  { value: "SOPORTE", label: "Soporte" },
 ];
 
 const emptyForm = {
@@ -58,6 +59,7 @@ interface UsuarioRow {
   sedeNombre: string | null;
   rolNombre: string | null;
   activo: boolean | null;
+  puedeRecuperarContrasena?: boolean | null;
 }
 
 interface ModuloPermiso {
@@ -84,7 +86,6 @@ export default function Usuarios() {
   const [message, setMessage] = useState("");
   const [confirmDesactivarId, setConfirmDesactivarId] = useState<number | null>(null);
   const [currentUser, setCurrentUser] = useState<{ username: string | null; rolNombre: string; sedeId: number | null; sedeNombre: string | null } | null>(null);
-
   const [permisosDialogOpen, setPermisosDialogOpen] = useState(false);
   const [permisosUsuarioId, setPermisosUsuarioId] = useState<number | null>(null);
   const [permisosUsuarioNombre, setPermisosUsuarioNombre] = useState("");
@@ -130,6 +131,25 @@ export default function Usuarios() {
   }, []);
 
   const isAdminConSede = currentUser?.rolNombre === "ADMIN" && currentUser?.sedeId != null;
+
+  const canTogglePuedeRecuperar =
+    currentUser?.rolNombre === "SUPERUSUARIO" || currentUser?.rolNombre === "ADMIN" || currentUser?.rolNombre === "SOPORTE";
+
+  const canToggleForUser = (u: UsuarioRow) => {
+    if (!canTogglePuedeRecuperar || currentUser?.username === u.username) return false;
+    if (currentUser?.rolNombre === "SUPERUSUARIO") return true;
+    return currentUser?.sedeId != null && u.sedeId === currentUser.sedeId;
+  };
+
+  const handleTogglePuedeRecuperar = async (u: UsuarioRow, value: boolean) => {
+    try {
+      await api.patch(`/api/usuarios/${u.id}/puede-recuperar-contrasena`, { puedeRecuperarContrasena: value });
+      setUsuarios((prev) => prev.map((usr) => (usr.id === u.id ? { ...usr, puedeRecuperarContrasena: value } : usr)));
+    } catch (err: unknown) {
+      const res = (err as { response?: { data?: { message?: string } } })?.response;
+      toast.error(res?.data?.message ?? "Error al actualizar");
+    }
+  };
 
   const openCreate = () => {
     setEditingId(null);
@@ -327,17 +347,23 @@ export default function Usuarios() {
                   <tr>
                     <th className="text-left p-3 font-medium">Usuario</th>
                     <th className="text-left p-3 font-medium">Nombre</th>
+                    <th className="text-left p-3 font-medium">Correo</th>
                     <th className="text-left p-3 font-medium">Rol</th>
                     <th className="text-left p-3 font-medium">Edad</th>
                     <th className="text-left p-3 font-medium">Sede</th>
                     <th className="text-left p-3 font-medium">Activo</th>
+                    {canTogglePuedeRecuperar && (
+                      <th className="text-center p-3 font-medium" title="Si está marcado, el usuario verá el link Recuperar contraseña cuando falle el login">
+                        Puede recuperar
+                      </th>
+                    )}
                     <th className="text-right p-3 font-medium">Acciones</th>
                   </tr>
                 </thead>
                 <tbody>
                   {usuarios.length === 0 ? (
                     <tr>
-                      <td colSpan={7} className="p-6 text-center text-muted-foreground">
+                      <td colSpan={canTogglePuedeRecuperar ? 9 : 8} className="p-6 text-center text-muted-foreground">
                         No hay usuarios. Cree uno con &quot;Nuevo usuario&quot;.
                       </td>
                     </tr>
@@ -350,6 +376,7 @@ export default function Usuarios() {
                         <td className="p-3">
                           {[u.nombre, u.apellido].filter(Boolean).join(" ") || "—"}
                         </td>
+                        <td className="p-3">{u.correo ?? "—"}</td>
                         <td className="p-3">{u.rolNombre ?? "—"}</td>
                         <td className="p-3">{u.edad != null ? u.edad : "—"}</td>
                         <td className="p-3">{u.sedeNombre ?? "—"}</td>
@@ -364,6 +391,19 @@ export default function Usuarios() {
                             }}
                           />
                         </td>
+                        {canTogglePuedeRecuperar && (
+                          <td className="p-3 text-center">
+                            {canToggleForUser(u) ? (
+                              <Checkbox
+                                checked={!!u.puedeRecuperarContrasena}
+                                onCheckedChange={(checked) => handleTogglePuedeRecuperar(u, !!checked)}
+                                title="Si está marcado, verá el link Recuperar contraseña cuando falle el login"
+                              />
+                            ) : (
+                              <span className="text-muted-foreground">—</span>
+                            )}
+                          </td>
+                        )}
                         <td className="p-3 text-right">
                           <Button variant="ghost" size="icon" onClick={() => !isOwnUser && openPermisos(u)} title={isOwnUser ? "No puede editar sus propios permisos" : "Permisos"} disabled={isOwnUser}>
                             <Shield className="h-4 w-4" />
