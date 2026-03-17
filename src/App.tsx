@@ -28,7 +28,7 @@ import Insumos from "./pages/Insumos";
 import Proveedores from "./pages/Proveedores";
 import Categorias from "./pages/Categorias";
 import Entregas from "./pages/Entregas";
-import PuntoVenta from "./pages/PuntoVenta";
+import Facturacion from "./pages/Facturacion";
 import VistaPantalla1 from "./pages/VistaPantalla1";
 import VistaPantalla2 from "./pages/VistaPantalla2";
 import MetricasLogistica from "./pages/MetricasLogistica";
@@ -92,7 +92,6 @@ const App = () => (
             <Route path="/dashboard" element={<DashboardLayout><ModuleRoute modulo="DASHBOARD"><Index /></ModuleRoute></DashboardLayout>} />
             <Route path="/productos" element={<DashboardLayout><ModuleRoute modulo="PRODUCTOS"><Productos /></ModuleRoute></DashboardLayout>} />
             <Route path="/ventas" element={<DashboardLayout><ModuleRoute modulo="VENTAS"><Ventas /></ModuleRoute></DashboardLayout>} />
-            <Route path="/punto-venta" element={<DashboardLayout><ModuleRoute modulo="VENTAS"><PuntoVenta /></ModuleRoute></DashboardLayout>} />
             <Route path="/vista-pantalla-1" element={<DashboardLayout><ModuleRoute modulo="DASHBOARD"><VistaPantalla1 /></ModuleRoute></DashboardLayout>} />
             <Route path="/vista-pantalla-2" element={<DashboardLayout><ModuleRoute modulo="DASHBOARD"><VistaPantalla2 /></ModuleRoute></DashboardLayout>} />
             <Route path="/compras" element={<DashboardLayout><ModuleRoute modulo="COMPRAS"><Compras /></ModuleRoute></DashboardLayout>} />
@@ -116,7 +115,7 @@ const App = () => (
             <Route path="/reportes/diarias" element={<DashboardLayout><ModuleRoute modulo="REPORTES"><ReportesDiarias /></ModuleRoute></DashboardLayout>} />
             <Route path="/reportes/mensuales" element={<DashboardLayout><ModuleRoute modulo="REPORTES"><ReportesMensuales /></ModuleRoute></DashboardLayout>} />
             <Route path="/reportes/anuales" element={<DashboardLayout><ModuleRoute modulo="REPORTES"><ReportesAnuales /></ModuleRoute></DashboardLayout>} />
-            <Route path="/facturacion" element={<Navigate to="/ventas" replace />} />
+            <Route path="/facturacion" element={<DashboardLayout><ModuleRoute modulo="VENTAS"><Facturacion /></ModuleRoute></DashboardLayout>} />
             <Route path="/inicio" element={<Navigate to="/dashboard" replace />} />
             <Route path="*" element={<NotFound />} />
           </Routes>

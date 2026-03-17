@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { Search, Plus, ShoppingCart, Trash2, X } from "lucide-react";
+import { Search, Plus, ShoppingCart, Trash2, X, Printer } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/dialog";
 import { api } from "@/lib/api";
 import { formatMoney, type Moneda } from "@/lib/utils";
+import { getBoletaHtml, type VentaParaBoleta } from "@/lib/boletaPrint";
 
 const LIST_SIZE = 500;
 
@@ -108,6 +109,17 @@ export default function Ventas() {
   const [showDetalleModal, setShowDetalleModal] = useState(false);
   const [ventaDetalle, setVentaDetalle] = useState<VentaDetalle | null>(null);
   const [loadingDetalle, setLoadingDetalle] = useState(false);
+  const [correlativoPreview, setCorrelativoPreview] = useState("");
+
+  useEffect(() => {
+    if (!showModal || !tipoDocumento || (tipoDocumento !== "BOLETA" && tipoDocumento !== "FACTURA")) {
+      setCorrelativoPreview("");
+      return;
+    }
+    api.get<{ siguienteNumero: string }>("/api/ventas/siguiente-numero-comprobante", { params: { tipoDocumento } })
+      .then((r) => setCorrelativoPreview(r.data?.siguienteNumero?.trim() ?? ""))
+      .catch(() => setCorrelativoPreview(""));
+  }, [showModal, tipoDocumento]);
 
   const loadVentas = useCallback(async (pageNum: number = 0) => {
     setLoading(true);
@@ -130,8 +142,9 @@ export default function Ventas() {
     setCarrito([]);
     setClienteId("");
     setMetodoPagoId("");
-    setTipoDocumento("");
+    setTipoDocumento("BOLETA");
     setNumeroDocumento("");
+    setCorrelativoPreview("");
     setMonedaVenta("PEN");
     setConCuotas(false);
     setRequiereDelivery(false);
@@ -261,7 +274,7 @@ export default function Ventas() {
         clienteId: Number(clienteId),
         metodoPagoId: metodoPagoId ? Number(metodoPagoId) : null,
         tipoDocumento: tipoDocumento || null,
-        numeroDocumento: numeroDocumento || null,
+        numeroDocumento: correlativoPreview ? null : (numeroDocumento || null),
         moneda: monedaVenta,
         conCuotas: metodoPagoId && metodosPago.find((mp) => mp.id === Number(metodoPagoId))?.nombre.toLowerCase().includes("tarjeta") ? conCuotas : null,
         observaciones: null,
@@ -637,8 +650,8 @@ export default function Ventas() {
                   onChange={(e) => setTipoDocumento(e.target.value)}
                 >
                   <option value="">—</option>
-                  <option value="FACTURA">Factura</option>
                   <option value="BOLETA">Boleta</option>
+                  <option value="FACTURA">Factura</option>
                 </select>
               </div>
             </div>
@@ -677,16 +690,28 @@ export default function Ventas() {
               </div>
             )}
 
-            {/* Número Documento */}
+            {/* Número de documento: muestra correlativo que se asignará o campo manual */}
             <div>
               <label className="text-sm font-medium">Número de documento</label>
-              <input
-                type="text"
-                className="mt-2 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                value={numeroDocumento}
-                onChange={(e) => setNumeroDocumento(e.target.value)}
-                placeholder="Ej: F001-00001"
-              />
+              {correlativoPreview ? (
+                <input
+                  type="text"
+                  readOnly
+                  className="mt-2 w-full rounded-md border border-border bg-muted/50 px-3 py-2 text-sm font-mono"
+                  value={correlativoPreview}
+                />
+              ) : (
+                <input
+                  type="text"
+                  className="mt-2 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                  value={numeroDocumento}
+                  onChange={(e) => setNumeroDocumento(e.target.value)}
+                  placeholder="Ej: B001-00001 (si su sede no tiene serie)"
+                />
+              )}
+              <p className="mt-1 text-xs text-muted-foreground">
+                {correlativoPreview ? "Correlativo que se asignará al registrar. No se puede modificar." : "Si su sede no tiene serie en Sectores, ingrese el número manualmente."}
+              </p>
             </div>
                 </div>
 
@@ -872,7 +897,42 @@ export default function Ventas() {
                 <span className="text-lg font-bold text-foreground">{formatMoney(ventaDetalle.total, ventaDetalle.moneda as Moneda)}</span>
               </div>
 
-              <div className="flex justify-end">
+              <div className="flex justify-end gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    const paraBoleta: VentaParaBoleta = {
+                      id: ventaDetalle.id,
+                      tipoDocumento: ventaDetalle.tipoDocumento,
+                      numeroDocumento: ventaDetalle.numeroDocumento,
+                      fecha: ventaDetalle.fecha,
+                      clienteNombre: ventaDetalle.clienteNombre,
+                      usuarioNombre: ventaDetalle.usuarioNombre,
+                      sectorNombre: ventaDetalle.sectorNombre,
+                      metodoPagoNombre: ventaDetalle.metodoPagoNombre,
+                      total: Number(ventaDetalle.total),
+                      moneda: ventaDetalle.moneda ?? "PEN",
+                      items: ventaDetalle.items.map((i) => ({
+                        productoNombre: i.productoNombre,
+                        cantidad: i.cantidad,
+                        precioUnitario: Number(i.precioUnitario),
+                        subtotal: Number(i.subtotal),
+                      })),
+                    };
+                    const html = getBoletaHtml(paraBoleta);
+                    const w = window.open("", "_blank", "width=380,height=700");
+                    if (w) {
+                      w.document.write(html);
+                      w.document.close();
+                      w.focus();
+                      w.print();
+                    }
+                  }}
+                >
+                  <Printer className="mr-2 h-4 w-4" />
+                  Imprimir boleta/factura
+                </Button>
                 <Button type="button" onClick={() => setShowDetalleModal(false)}>Cerrar</Button>
               </div>
             </div>

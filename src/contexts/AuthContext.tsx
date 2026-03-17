@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useCallback, useEffect, type ReactNode } from "react";
-import { api, getAuthToken, setAuthToken as persistToken, setRefreshToken as persistRefreshToken, getUsernameFromToken, getRoleFromToken, logout as doLogout } from "@/lib/api";
+import { getAuthToken, setAuthToken as persistToken, setRefreshToken as persistRefreshToken, getUsernameFromToken, getRoleFromToken, logout as doLogout } from "@/lib/api";
+import { authApi } from "@/api";
 
 interface AuthContextType {
   isAuthenticated: boolean;
@@ -22,7 +23,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const fetchMe = useCallback(async () => {
     try {
-      const { data } = await api.get("/api/auth/me");
+      const data = await authApi.me();
       setUsername(data.username ?? null);
       setRolNombre(data.rolNombre ?? null);
       setModulos(new Set(data.modulos ?? []));
@@ -43,7 +44,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [fetchMe]);
 
   const login = useCallback(async (user: string, password: string) => {
-    const { data } = await api.post<{ token: string; refreshToken: string }>("/api/auth/login", { username: user, password });
+    const data = await authApi.login(user, password);
     persistToken(data.token);
     persistRefreshToken(data.refreshToken);
     await fetchMe();

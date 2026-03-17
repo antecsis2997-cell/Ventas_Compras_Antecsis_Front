@@ -1,11 +1,30 @@
-import axios, { type InternalAxiosRequestConfig } from "axios";
+import axios, { type AxiosError, type InternalAxiosRequestConfig } from "axios";
 
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8080";
+const API_TIMEOUT_MS = 30_000;
 
+/** Cliente axios configurado: baseURL, timeout, JSON, interceptores de auth y refresh. */
 export const api = axios.create({
   baseURL: API_URL,
+  timeout: API_TIMEOUT_MS,
   headers: { "Content-Type": "application/json" },
 });
+
+/** Respuesta de error típica del backend (campo message). */
+export interface ApiErrorBody {
+  message?: string;
+  error?: string;
+}
+
+/** Extrae mensaje de error de una respuesta axios para mostrar al usuario. */
+export function getApiErrorMessage(err: unknown): string {
+  const e = err as AxiosError<ApiErrorBody>;
+  const msg = e.response?.data?.message ?? e.response?.data?.error;
+  if (typeof msg === "string" && msg.trim()) return msg.trim();
+  if (e.code === "ECONNABORTED") return "Tiempo de espera agotado. Reintente.";
+  if (e.message) return e.message;
+  return "Error de conexión";
+}
 
 const AUTH_TOKEN_KEY = "authToken";
 const REFRESH_TOKEN_KEY = "refreshToken";

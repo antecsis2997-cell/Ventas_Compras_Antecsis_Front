@@ -7,8 +7,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { api } from "@/lib/api";
+import { api, getApiErrorMessage } from "@/lib/api";
 import { formatMoney, type Moneda } from "@/lib/utils";
+import { getBoletaHtml, type VentaParaBoleta } from "@/lib/boletaPrint";
+import { ventasApi } from "@/api";
 
 const LIST_SIZE = 500;
 
@@ -48,8 +50,19 @@ export default function PuntoVenta() {
   const [showCheckout, setShowCheckout] = useState(false);
   const [saving, setSaving] = useState(false);
   const [formError, setFormError] = useState("");
-  const [ventaRegistrada, setVentaRegistrada] = useState<{ id: number; tipoDoc: string; numero: string; total: number; moneda: string } | null>(null);
+  const [ventaRegistrada, setVentaRegistrada] = useState<VentaParaBoleta | null>(null);
+  const [correlativoPreview, setCorrelativoPreview] = useState("");
   const searchRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (!showCheckout || !tipoDocumento || (tipoDocumento !== "BOLETA" && tipoDocumento !== "FACTURA")) {
+      setCorrelativoPreview("");
+      return;
+    }
+    ventasApi.siguienteNumeroComprobante(tipoDocumento)
+      .then((r) => setCorrelativoPreview(r.siguienteNumero?.trim() ?? ""))
+      .catch(() => setCorrelativoPreview(""));
+  }, [showCheckout, tipoDocumento]);
 
   const loadData = useCallback(async () => {
     try {
@@ -126,8 +139,9 @@ export default function PuntoVenta() {
     }
     setFormError("");
     setClienteId("");
-    setTipoDocumento("");
+    setTipoDocumento("BOLETA");
     setNumeroDocumento("");
+    setCorrelativoPreview("");
     setMetodoPagoId("");
     setDniCmr("");
     setShowCheckout(true);
@@ -141,11 +155,11 @@ export default function PuntoVenta() {
     setFormError("");
     setSaving(true);
     try {
-      const res = await api.post("/api/ventas", {
+      const venta = await ventasApi.crear({
         clienteId: Number(clienteId),
         metodoPagoId: metodoPagoId ? Number(metodoPagoId) : null,
         tipoDocumento: tipoDocumento || null,
-        numeroDocumento: numeroDocumento || null,
+        numeroDocumento: correlativoPreview ? null : (numeroDocumento || null),
         moneda: monedaVenta,
         conCuotas: null,
         observaciones: null,
@@ -159,19 +173,38 @@ export default function PuntoVenta() {
           precioUnitario: c.precioUnitario,
         })),
       });
-      const venta = res.data;
-      setVentaRegistrada({
+      const paraBoleta: VentaParaBoleta = {
         id: venta.id,
-        tipoDoc: venta.tipoDocumento ?? "—",
-        numero: venta.numeroDocumento ?? "",
-        total: venta.total,
+        tipoDocumento: venta.tipoDocumento ?? null,
+        numeroDocumento: venta.numeroDocumento ?? null,
+        fecha: venta.fecha,
+        clienteNombre: venta.clienteNombre ?? "",
+        usuarioNombre: venta.usuarioNombre ?? "",
+        sectorNombre: venta.sectorNombre ?? null,
+        metodoPagoNombre: venta.metodoPagoNombre ?? null,
+        total: Number(venta.total),
         moneda: venta.moneda ?? monedaVenta,
-      });
+        items: (venta.items ?? []).map((i: { productoNombre: string; cantidad: number; precioUnitario: number; subtotal: number }) => ({
+          productoNombre: i.productoNombre,
+          cantidad: i.cantidad,
+          precioUnitario: Number(i.precioUnitario),
+          subtotal: Number(i.subtotal),
+        })),
+      };
+      setVentaRegistrada(paraBoleta);
       setCarrito([]);
       setShowCheckout(false);
+      // Imprimir boleta al momento de la venta
+      const html = getBoletaHtml(paraBoleta);
+      const ventana = window.open("", "_blank", "width=380,height=700");
+      if (ventana) {
+        ventana.document.write(html);
+        ventana.document.close();
+        ventana.focus();
+        ventana.print();
+      }
     } catch (err: unknown) {
-      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message ?? "Error al registrar";
-      setFormError(msg);
+      setFormError(getApiErrorMessage(err));
     } finally {
       setSaving(false);
     }
@@ -179,23 +212,13 @@ export default function PuntoVenta() {
 
   const imprimir = () => {
     if (!ventaRegistrada) return;
-    const ventana = window.open("", "_blank", "width=400,height=500");
+    const html = getBoletaHtml(ventaRegistrada);
+    const ventana = window.open("", "_blank", "width=380,height=700");
     if (!ventana) return;
-    ventana.document.write(`
-      <!DOCTYPE html>
-      <html>
-      <head><title>${ventaRegistrada.tipoDoc} ${ventaRegistrada.numero}</title></head>
-      <body style="font-family:sans-serif;padding:20px;">
-        <h2>${ventaRegistrada.tipoDoc} ${ventaRegistrada.numero}</h2>
-        <p>Venta #${ventaRegistrada.id}</p>
-        <p><strong>Total: ${formatMoney(ventaRegistrada.total, ventaRegistrada.moneda as Moneda)}</strong></p>
-        <p style="margin-top:40px;font-size:12px;">ANTECSIS - Punto de Venta</p>
-      </body>
-      </html>
-    `);
+    ventana.document.write(html);
     ventana.document.close();
+    ventana.focus();
     ventana.print();
-    ventana.close();
   };
 
   return (
@@ -386,14 +409,26 @@ export default function PuntoVenta() {
               </select>
             </div>
             <div>
-              <label className="text-sm font-medium">Número documento</label>
-              <input
-                type="text"
-                className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                value={numeroDocumento}
-                onChange={(e) => setNumeroDocumento(e.target.value)}
-                placeholder="Ej: B001-00001"
-              />
+              <label className="text-sm font-medium">Número de documento</label>
+              {correlativoPreview ? (
+                <input
+                  type="text"
+                  readOnly
+                  className="mt-1 w-full rounded-md border border-border bg-muted/50 px-3 py-2 text-sm font-mono"
+                  value={correlativoPreview}
+                />
+              ) : (
+                <input
+                  type="text"
+                  className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                  value={numeroDocumento}
+                  onChange={(e) => setNumeroDocumento(e.target.value)}
+                  placeholder="Ej: B001-00001 (si su sede no tiene serie)"
+                />
+              )}
+              <p className="mt-1 text-xs text-muted-foreground">
+                {correlativoPreview ? "Correlativo que se asignará al registrar. No se puede modificar." : "Si su sede no tiene serie en Sectores, ingrese el número manualmente."}
+              </p>
             </div>
             <div>
               <label className="text-sm font-medium">DNI para puntos CMR (opcional)</label>
@@ -438,7 +473,7 @@ export default function PuntoVenta() {
           {ventaRegistrada && (
             <div className="space-y-4">
               <p className="text-sm">
-                <strong>{ventaRegistrada.tipoDoc}</strong> {ventaRegistrada.numero} - Total:{" "}
+                <strong>{ventaRegistrada.tipoDocumento ?? "—"}</strong> {ventaRegistrada.numeroDocumento ?? ""} - Total:{" "}
                 {formatMoney(ventaRegistrada.total, ventaRegistrada.moneda as Moneda)}
               </p>
               <div className="flex gap-2">

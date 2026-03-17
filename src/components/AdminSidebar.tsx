@@ -55,7 +55,6 @@ const menuItems: SidebarItem[] = [
   // Operaciones (primero compras, luego ventas)
   { title: "Compras", url: "/compras", icon: Truck, moduloCodigo: "COMPRAS" },
   { title: "Ventas", url: "/ventas", icon: ShoppingCart, moduloCodigo: "VENTAS" },
-  { title: "Punto de Venta", url: "/punto-venta", icon: ShoppingCart, moduloCodigo: "VENTAS" },
   { title: "Facturación", url: "/facturacion", icon: FileText, moduloCodigo: "VENTAS" },
   // Personas
   { title: "Clientes", url: "/clientes", icon: UserCircle2, moduloCodigo: "CLIENTES" },

@@ -7,19 +7,24 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { api } from "@/lib/api";
+import { getApiErrorMessage } from "@/lib/api";
+import { sectoresApi } from "@/api";
 
 interface SectorRow {
   id: number;
   nombreSector: string;
   telefono: string | null;
   direccion: string | null;
+  prefijoBoleta: string | null;
+  prefijoFactura: string | null;
 }
 
 const emptyForm = {
   nombreSector: "",
   telefono: "",
   direccion: "",
+  prefijoBoleta: "",
+  prefijoFactura: "",
 };
 
 export default function Sectores() {
@@ -37,8 +42,7 @@ export default function Sectores() {
   const loadSectores = useCallback(async (pageNum: number = 0) => {
     setLoading(true);
     try {
-      const res = await api.get("/api/sectores", { params: { page: pageNum, size: 10 } });
-      const data = res.data;
+      const data = await sectoresApi.listar({ page: pageNum, size: 10 });
       setSectores(data.content ?? []);
       setPage(data.number ?? pageNum);
       setTotalPages(data.totalPages ?? 0);
@@ -66,6 +70,8 @@ export default function Sectores() {
       nombreSector: s.nombreSector ?? "",
       telefono: s.telefono ?? "",
       direccion: s.direccion ?? "",
+      prefijoBoleta: s.prefijoBoleta ?? "",
+      prefijoFactura: s.prefijoFactura ?? "",
     });
     setFormError("");
     setDialogOpen(true);
@@ -85,17 +91,18 @@ export default function Sectores() {
         nombreSector: nombre,
         telefono: form.telefono?.trim() || null,
         direccion: form.direccion?.trim() || null,
+        prefijoBoleta: form.prefijoBoleta?.trim() || null,
+        prefijoFactura: form.prefijoFactura?.trim() || null,
       };
       if (editingId) {
-        await api.put("/api/sectores/" + editingId, body);
+        await sectoresApi.actualizar(editingId, body);
       } else {
-        await api.post("/api/sectores", body);
+        await sectoresApi.crear(body);
       }
       setDialogOpen(false);
       loadSectores(page);
     } catch (err: unknown) {
-      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
-      setFormError(msg || "Error al guardar");
+      setFormError(getApiErrorMessage(err));
     } finally {
       setSaving(false);
     }
@@ -105,11 +112,10 @@ export default function Sectores() {
     setDeleteError("");
     if (!confirm("¿Eliminar esta sede/sector?")) return;
     try {
-      await api.delete("/api/sectores/" + id);
+      await sectoresApi.eliminar(id);
       loadSectores(page);
     } catch (err: unknown) {
-      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
-      setDeleteError(msg || "No se pudo eliminar el sector");
+      setDeleteError(getApiErrorMessage(err));
     }
   };
 
@@ -117,7 +123,7 @@ export default function Sectores() {
     <>
       <div className="page-header">
         <h1 className="page-title">Sectores / Sedes</h1>
-        <p className="page-subtitle">Gestión de sedes (nombre, teléfono, dirección)</p>
+        <p className="page-subtitle">Gestión de sedes: nombre, teléfono, dirección y serie de comprobantes (ej. B137, F137)</p>
       </div>
 
       <div className="table-container">
@@ -142,6 +148,8 @@ export default function Sectores() {
                 <thead className="bg-muted/50">
                   <tr>
                     <th className="text-left p-3 font-medium">Nombre</th>
+                    <th className="text-left p-3 font-medium">Serie Boleta</th>
+                    <th className="text-left p-3 font-medium">Serie Factura</th>
                     <th className="text-left p-3 font-medium">Teléfono</th>
                     <th className="text-left p-3 font-medium">Dirección</th>
                     <th className="text-right p-3 font-medium">Acciones</th>
@@ -150,7 +158,7 @@ export default function Sectores() {
                 <tbody>
                   {sectores.length === 0 ? (
                     <tr>
-                      <td colSpan={4} className="p-6 text-center text-muted-foreground">
+                      <td colSpan={6} className="p-6 text-center text-muted-foreground">
                         No hay sectores. Cree uno con &quot;Nueva sede&quot;.
                       </td>
                     </tr>
@@ -158,6 +166,8 @@ export default function Sectores() {
                     sectores.map((s) => (
                       <tr key={s.id} className="border-t border-border">
                         <td className="p-3">{s.nombreSector}</td>
+                        <td className="p-3 font-mono text-sm">{s.prefijoBoleta || "—"}</td>
+                        <td className="p-3 font-mono text-sm">{s.prefijoFactura || "—"}</td>
                         <td className="p-3">{s.telefono || "—"}</td>
                         <td className="p-3">{s.direccion || "—"}</td>
                         <td className="p-3 text-right">
@@ -228,6 +238,32 @@ export default function Sectores() {
                 onChange={(e) => setForm((f) => ({ ...f, direccion: e.target.value }))}
                 placeholder="Opcional"
               />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm font-medium">Serie boleta</label>
+                <input
+                  type="text"
+                  className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm font-mono"
+                  value={form.prefijoBoleta}
+                  onChange={(e) => setForm((f) => ({ ...f, prefijoBoleta: e.target.value.toUpperCase() }))}
+                  placeholder="Ej. B137"
+                  maxLength={20}
+                />
+                <p className="mt-1 text-xs text-muted-foreground">Ej. B137. Si se configura, el número se genera automático (B137-00000001).</p>
+              </div>
+              <div>
+                <label className="text-sm font-medium">Serie factura</label>
+                <input
+                  type="text"
+                  className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm font-mono"
+                  value={form.prefijoFactura}
+                  onChange={(e) => setForm((f) => ({ ...f, prefijoFactura: e.target.value.toUpperCase() }))}
+                  placeholder="Ej. F137"
+                  maxLength={20}
+                />
+                <p className="mt-1 text-xs text-muted-foreground">Ej. F137. Opcional.</p>
+              </div>
             </div>
             {formError && <p className="text-sm text-destructive">{formError}</p>}
             <div className="flex justify-end gap-2">
