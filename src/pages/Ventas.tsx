@@ -97,6 +97,8 @@ export default function Ventas() {
   const [tipoEntrega, setTipoEntrega] = useState<"INMEDIATA" | "PROGRAMADA_3_5" | "PROGRAMADA_5_6_MESES">("INMEDIATA");
   const [direccionEntrega, setDireccionEntrega] = useState("");
   const [dniCmr, setDniCmr] = useState("");
+  const [yapeTelefono, setYapeTelefono] = useState("");
+  const [yapeOtp, setYapeOtp] = useState("");
   const [searchProducto, setSearchProducto] = useState("");
   const [showDropdown, setShowDropdown] = useState(false);
   const [codigoBarras, setCodigoBarras] = useState("");
@@ -111,6 +113,12 @@ export default function Ventas() {
   const [loadingDetalle, setLoadingDetalle] = useState(false);
   const [correlativoPreview, setCorrelativoPreview] = useState("");
 
+  const [comprasCalificadas, setComprasCalificadas] = useState<{
+    comprasCalificadas: number;
+    faltanParaDescuento: number;
+    proximaDescuento: boolean;
+  } | null>(null);
+
   useEffect(() => {
     if (!showModal || !tipoDocumento || (tipoDocumento !== "BOLETA" && tipoDocumento !== "FACTURA")) {
       setCorrelativoPreview("");
@@ -120,6 +128,13 @@ export default function Ventas() {
       .then((r) => setCorrelativoPreview(r.data?.siguienteNumero?.trim() ?? ""))
       .catch(() => setCorrelativoPreview(""));
   }, [showModal, tipoDocumento]);
+
+  useEffect(() => {
+    if (!clienteId) { setComprasCalificadas(null); return; }
+    api.get(`/api/ventas/clientes/${clienteId}/compras-calificadas`)
+      .then((r) => setComprasCalificadas(r.data))
+      .catch(() => setComprasCalificadas(null));
+  }, [clienteId]);
 
   const loadVentas = useCallback(async (pageNum: number = 0) => {
     setLoading(true);
@@ -141,6 +156,7 @@ export default function Ventas() {
   const openModal = async () => {
     setCarrito([]);
     setClienteId("");
+    setComprasCalificadas(null);
     setMetodoPagoId("");
     setTipoDocumento("BOLETA");
     setNumeroDocumento("");
@@ -151,6 +167,8 @@ export default function Ventas() {
     setTipoEntrega("INMEDIATA" as "INMEDIATA" | "PROGRAMADA_3_5" | "PROGRAMADA_5_6_MESES");
     setDireccionEntrega("");
     setDniCmr("");
+    setYapeTelefono("");
+    setYapeOtp("");
     setCodigoBarras("");
     setSearchProducto("");
     setShowDropdown(false);
@@ -262,6 +280,16 @@ export default function Ventas() {
       setFormError("Agregue al menos un producto al carrito");
       return;
     }
+    if (metodoPagoSeleccionado && metodoPagoSeleccionado.nombre.toLowerCase().includes("yape")) {
+      if (!yapeTelefono.trim()) {
+        setFormError("Ingrese el celular Yape del cliente");
+        return;
+      }
+      if (!yapeOtp.trim()) {
+        setFormError("Ingrese el código OTP de Yape");
+        return;
+      }
+    }
     setSaving(true);
     try {
       if (requiereDelivery && (tipoEntrega === "INMEDIATA" || tipoEntrega === "PROGRAMADA_5_6_MESES") && !direccionEntrega.trim()) {
@@ -282,6 +310,8 @@ export default function Ventas() {
         tipoEntrega: requiereDelivery ? tipoEntrega : null,
         direccionEntrega: requiereDelivery && (tipoEntrega === "INMEDIATA" || tipoEntrega === "PROGRAMADA_5_6_MESES") ? direccionEntrega.trim() : null,
         dniCmr: dniCmr.trim() || null,
+        yapeTelefono: metodoPagoSeleccionado && metodoPagoSeleccionado.nombre.toLowerCase().includes("yape") ? yapeTelefono.trim() : null,
+        yapeOtp: metodoPagoSeleccionado && metodoPagoSeleccionado.nombre.toLowerCase().includes("yape") ? yapeOtp.trim() : null,
         items: carrito.map((c) => ({
           productoId: c.productoId,
           cantidad: c.cantidad,
@@ -329,6 +359,7 @@ export default function Ventas() {
 
   const metodoPagoSeleccionado = metodosPago.find((mp) => mp.id === Number(metodoPagoId));
   const esTarjeta = metodoPagoSeleccionado?.nombre.toLowerCase().includes("tarjeta");
+  const esYape = metodoPagoSeleccionado?.nombre.toLowerCase().includes("yape");
 
   return (
     <>
@@ -623,6 +654,32 @@ export default function Ventas() {
                     </option>
                   ))}
               </select>
+              {comprasCalificadas !== null && (
+                <div className={`mt-2 rounded-lg px-3 py-2 text-xs flex items-center gap-2 ${
+                  comprasCalificadas.proximaDescuento
+                    ? "bg-green-500/15 border border-green-500/30 text-green-400"
+                    : "bg-blue-500/10 border border-blue-500/20 text-blue-300"
+                }`}>
+                  {comprasCalificadas.proximaDescuento ? (
+                    <>
+                      <span className="text-base">🎉</span>
+                      <span>
+                        <strong>¡Esta compra aplica 20% de descuento!</strong>{" "}
+                        (si supera los S/ 50) — lleva {comprasCalificadas.comprasCalificadas} compras calificadas acumuladas.
+                        Al aplicarse el descuento, el ciclo reinicia automáticamente.
+                      </span>
+                    </>
+                  ) : (
+                    <>
+                      <span className="text-base">🛒</span>
+                      <span>
+                        Compras calificadas (&gt;S/ 50): <strong>{comprasCalificadas.comprasCalificadas}</strong>
+                        {" — "}le faltan <strong>{comprasCalificadas.faltanParaDescuento + 1}</strong> compras más (incluida esta) para obtener el <strong>20% de descuento</strong>.
+                      </span>
+                    </>
+                  )}
+                </div>
+              )}
                   </div>
                 </div>
 
@@ -667,6 +724,32 @@ export default function Ventas() {
                 placeholder="Ej: 10152669"
               />
             </div>
+
+            {/* Datos Yape cuando el método de pago es Yape */}
+            {esYape && (
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-medium">Celular Yape</label>
+                  <input
+                    type="tel"
+                    className="mt-2 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                    value={yapeTelefono}
+                    onChange={(e) => setYapeTelefono(e.target.value)}
+                    placeholder="Ej: 969929157"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-medium">Código OTP de Yape</label>
+                  <input
+                    type="text"
+                    className="mt-2 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                    value={yapeOtp}
+                    onChange={(e) => setYapeOtp(e.target.value)}
+                    placeholder="Ej: 557454"
+                  />
+                </div>
+              </div>
+            )}
 
             {/* Cuotas si es tarjeta */}
             {esTarjeta && (

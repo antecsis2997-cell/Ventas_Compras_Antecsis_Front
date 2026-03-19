@@ -25,6 +25,7 @@ import ReportesMensuales from "./pages/ReportesMensuales";
 import ReportesAnuales from "./pages/ReportesAnuales";
 import Solicitudes from "./pages/Solicitudes";
 import Insumos from "./pages/Insumos";
+import InsumosCatalog from "./pages/InsumosCatalog";
 import Proveedores from "./pages/Proveedores";
 import Categorias from "./pages/Categorias";
 import Entregas from "./pages/Entregas";
@@ -32,6 +33,7 @@ import Facturacion from "./pages/Facturacion";
 import VistaPantalla1 from "./pages/VistaPantalla1";
 import VistaPantalla2 from "./pages/VistaPantalla2";
 import MetricasLogistica from "./pages/MetricasLogistica";
+import InformePedidosPendientesDelivery from "./pages/InformePedidosPendientesDelivery";
 import SolicitudesRecuperacion from "./pages/SolicitudesRecuperacion";
 import NotFound from "./pages/NotFound";
 
@@ -96,6 +98,7 @@ const App = () => (
             <Route path="/vista-pantalla-2" element={<DashboardLayout><ModuleRoute modulo="DASHBOARD"><VistaPantalla2 /></ModuleRoute></DashboardLayout>} />
             <Route path="/compras" element={<DashboardLayout><ModuleRoute modulo="COMPRAS"><Compras /></ModuleRoute></DashboardLayout>} />
             <Route path="/insumos" element={<DashboardLayout><ModuleRoute modulo="INVENTARIO"><Insumos /></ModuleRoute></DashboardLayout>} />
+            <Route path="/insumos/catalogo" element={<DashboardLayout><ModuleRoute modulo="INVENTARIO"><InsumosCatalog /></ModuleRoute></DashboardLayout>} />
             <Route path="/usuarios" element={<DashboardLayout><ModuleRoute modulo="USUARIOS"><Usuarios /></ModuleRoute></DashboardLayout>} />
             <Route path="/solicitudes-recuperacion" element={<DashboardLayout><SolicitudesRecuperacionRoute /></DashboardLayout>} />
             <Route path="/clientes" element={<DashboardLayout><ModuleRoute modulo="CLIENTES"><Clientes /></ModuleRoute></DashboardLayout>} />
@@ -109,6 +112,7 @@ const App = () => (
             <Route path="/delivery" element={<DashboardLayout><ModuleRoute modulo="LOGISTICA_ENTREGAS"><Entregas /></ModuleRoute></DashboardLayout>} />
             <Route path="/entregas/5-6-meses" element={<DashboardLayout><ModuleRoute modulo="LOGISTICA_ENTREGAS"><Entregas /></ModuleRoute></DashboardLayout>} />
             <Route path="/logistica/metricas" element={<DashboardLayout><ModuleRoute modulo="LOGISTICA_ENTREGAS"><MetricasLogistica /></ModuleRoute></DashboardLayout>} />
+            <Route path="/logistica/informe-pedidos-pendientes-delivery" element={<DashboardLayout><ModuleRoute modulo="LOGISTICA_ENTREGAS"><InformePedidosPendientesDelivery /></ModuleRoute></DashboardLayout>} />
             <Route path="/mensajes" element={<DashboardLayout><ModuleRoute modulo="MENSAJES"><PlaceholderPage title="Mensajes" subtitle="CHAT / mensajes" /></ModuleRoute></DashboardLayout>} />
             <Route path="/historial-pedidos" element={<DashboardLayout><ModuleRoute modulo="HISTORIAL_PEDIDOS"><PlaceholderPage title="Historial de pedidos" subtitle="Consulta de pedidos" /></ModuleRoute></DashboardLayout>} />
             <Route path="/reportes" element={<DashboardLayout><ModuleRoute modulo="REPORTES"><Reportes /></ModuleRoute></DashboardLayout>} />

@@ -51,7 +51,7 @@ const menuItems: SidebarItem[] = [
   // Catálogo
   { title: "Productos", url: "/productos", icon: Package, moduloCodigo: "PRODUCTOS" },
   { title: "Categorías", url: "/categorias", icon: Tags, moduloCodigo: "PRODUCTOS" },
-  { title: "Inventario", url: "/insumos", icon: Boxes, moduloCodigo: "INVENTARIO" },
+  { title: "Insumos", url: "/insumos", icon: Boxes, moduloCodigo: "INVENTARIO" },
   // Operaciones (primero compras, luego ventas)
   { title: "Compras", url: "/compras", icon: Truck, moduloCodigo: "COMPRAS" },
   { title: "Ventas", url: "/ventas", icon: ShoppingCart, moduloCodigo: "VENTAS" },
@@ -83,6 +83,7 @@ const menuItems: SidebarItem[] = [
       { title: "Delivery (Inmediata)", url: "/delivery" },
       { title: "5 a 6 meses", url: "/entregas/5-6-meses" },
       { title: "Métricas entregas", url: "/logistica/metricas" },
+      { title: "Informe pendientes delivery", url: "/logistica/informe-pedidos-pendientes-delivery" },
     ],
   },
   // Comunicación
@@ -136,7 +137,16 @@ export function AdminSidebar({ collapsed, onToggle }: AdminSidebarProps) {
   const location = useLocation();
   const { rolNombre, hasModule } = useAuth();
   const isSuperusuario = rolNombre === "SUPERUSUARIO";
-  const [openMenus, setOpenMenus] = useState<string[]>(["Reportes", "Logística"]);
+  // No desplegar por defecto; abrir solo la sección donde el usuario está ubicado.
+  const [openMenus, setOpenMenus] = useState<string[]>(() => {
+    const isActive = (url: string) => location.pathname === url;
+    const isChildActive = (children?: { url: string }[]) =>
+      children?.some((c) => location.pathname === c.url);
+
+    return menuItems
+      .filter((item) => item.children && (isActive(item.url) || isChildActive(item.children)))
+      .map((item) => item.title);
+  });
 
   const visibleMenuItems = menuItems.filter((item) => {
     if (item.requiresSuperadmin) return isSuperusuario;

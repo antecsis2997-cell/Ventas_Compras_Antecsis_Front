@@ -53,6 +53,8 @@ export const ventasApi = {
     tipoEntrega?: string | null;
     direccionEntrega?: string | null;
     dniCmr?: string | null;
+    yapeTelefono?: string | null;
+    yapeOtp?: string | null;
     observaciones?: string | null;
     items: Array<{ productoId: number; cantidad: number; precioUnitario?: number }>;
   }) => api.post<VentaResponse>(BASE, body).then((r) => r.data),

@@ -1,6 +1,7 @@
 import { Search, AlertTriangle, ArrowUpCircle, ArrowDownCircle, RefreshCw, History, Image } from "lucide-react";
 import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
 import {
   Dialog,
   DialogContent,
@@ -27,6 +28,8 @@ interface InventarioRow {
   stockMinimoAlerta: number | null;
   sectorNombre: string | null;
   imagenUrl?: string | null;
+  activo?: boolean | null;
+  estado?: string | null;
 }
 
 interface MovimientoRow {
@@ -46,6 +49,7 @@ interface MovimientoRow {
 const TIPO_LABELS: Record<string, { label: string; color: string }> = {
   COMPRA: { label: "Compra", color: "text-success bg-success/10" },
   VENTA: { label: "Venta", color: "text-info bg-info/10" },
+  CONVERSION: { label: "Conversión", color: "text-primary bg-primary/10" },
   ANULACION_COMPRA: { label: "Anul. Compra", color: "text-warning bg-warning/10" },
   ANULACION_VENTA: { label: "Anul. Venta", color: "text-warning bg-warning/10" },
   AJUSTE: { label: "Ajuste", color: "text-primary bg-primary/10" },
@@ -78,7 +82,9 @@ export default function Insumos() {
   const loadInventario = useCallback(async (pageNum = 0) => {
     setLoading(true);
     try {
-      const endpoint = filterStock === "bajo" ? "/api/inventario/stock-bajo" : "/api/inventario";
+      const endpoint = filterStock === "bajo"
+        ? "/api/inventario/insumos/stock-bajo"
+        : "/api/inventario/insumos";
       const params: Record<string, unknown> = { page: pageNum, size: 15 };
       if (filterStock === "bajo") params.limite = 10;
       const res = await api.get(endpoint, { params });
@@ -159,8 +165,13 @@ export default function Insumos() {
     <>
       <div className="page-header flex items-center justify-between">
         <div>
-          <h1 className="page-title">Inventario</h1>
-          <p className="page-subtitle">Control de stock, movimientos y ajustes</p>
+          <h1 className="page-title">Insumos</h1>
+          <p className="page-subtitle">Stock de insumos (materia prima) y movimientos</p>
+        </div>
+        <div>
+          <Button asChild>
+            <Link to="/insumos/catalogo">Agregar / editar insumos</Link>
+          </Button>
         </div>
       </div>
 
@@ -217,7 +228,7 @@ export default function Insumos() {
                     <th className="px-5 py-3 text-left font-medium text-muted-foreground">Precio</th>
                     <th className="px-5 py-3 text-left font-medium text-muted-foreground">Stock</th>
                     <th className="px-5 py-3 text-left font-medium text-muted-foreground">Unidad</th>
-                    <th className="px-5 py-3 text-left font-medium text-muted-foreground">Estado</th>
+                    <th className="px-5 py-3 text-left font-medium text-muted-foreground">Activo</th>
                     <th className="px-5 py-3 text-left font-medium text-muted-foreground">Acciones</th>
                   </tr>
                 </thead>
@@ -272,13 +283,13 @@ export default function Insumos() {
                         <td className="px-5 py-3 font-semibold text-foreground">{i.stock}</td>
                         <td className="px-5 py-3 text-muted-foreground">{i.unidadMedida ?? "—"}</td>
                         <td className="px-5 py-3">
-                          {isStockBajo(i) ? (
+                          {i.activo === false || i.estado === "INACTIVO" ? (
                             <span className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-destructive/10 text-destructive">
-                              Stock bajo
+                              Inactivo
                             </span>
                           ) : (
                             <span className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-success/10 text-success">
-                              Normal
+                              Activo
                             </span>
                           )}
                         </td>
@@ -351,7 +362,8 @@ export default function Insumos() {
                   ) : (
                     movimientos.map((m) => {
                       const tipoInfo = TIPO_LABELS[m.tipo] ?? { label: m.tipo, color: "text-foreground bg-muted" };
-                      const esEntrada = ["COMPRA", "ANULACION_VENTA"].includes(m.tipo);
+                      // Mejor decidir por el cambio real de stock (para conversiones, puede ser entrada o salida).
+                      const esEntrada = (m.stockNuevo ?? 0) > (m.stockAnterior ?? 0);
                       return (
                         <tr key={m.id} className="border-b border-border last:border-0 hover:bg-muted/30 transition-colors">
                           <td className="px-5 py-3 text-muted-foreground whitespace-nowrap">
