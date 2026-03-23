@@ -3,14 +3,33 @@ import { Link } from "react-router-dom";
 import { StatCard } from "@/components/StatCard";
 import { api } from "@/lib/api";
 import { formatMoney } from "@/lib/utils";
+import { useAuth } from "@/contexts/AuthContext";
 import {
   DollarSign,
   ShoppingCart,
   Package,
   TrendingUp,
+  Plus,
+  Truck,
+  RefreshCw,
+  Users,
 } from "lucide-react";
 
+function getSaludo() {
+  const h = new Date().getHours();
+  if (h < 12) return "Buenos días";
+  if (h < 19) return "Buenas tardes";
+  return "Buenas noches";
+}
+
+function getFechaLarga() {
+  return new Date().toLocaleDateString("es-PE", {
+    weekday: "long", year: "numeric", month: "long", day: "numeric",
+  });
+}
+
 export default function Dashboard() {
+  const { username } = useAuth();
   const [ventasHoy, setVentasHoy] = useState({ totalVentas: 0, montoTotal: 0 });
   const [ventasMes, setVentasMes] = useState({ totalVentas: 0, montoTotal: 0 });
   const [ventasAnio, setVentasAnio] = useState({ totalVentas: 0, montoTotal: 0 });
@@ -79,15 +98,63 @@ export default function Dashboard() {
 
   return (
     <>
-      <div className="page-header">
-        <h1 className="page-title">Dashboard</h1>
-        <p className="page-subtitle">Resumen general de la bodega</p>
+      {/* Header con saludo */}
+      <div className="page-header flex items-start justify-between flex-wrap gap-3">
+        <div>
+          <h1 className="page-title">{getSaludo()}, {username ?? "Usuario"} 👋</h1>
+          <p className="page-subtitle capitalize">{getFechaLarga()}</p>
+        </div>
       </div>
+
       {error && (
         <div className="rounded-md bg-destructive/10 text-destructive px-3 py-2 text-sm mb-4">
           {error}
         </div>
       )}
+
+      {/* Acciones rápidas */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+        <Link to="/ventas"
+          className="flex items-center gap-3 rounded-xl border border-border bg-card px-4 py-3 hover:bg-primary/5 hover:border-primary/30 transition-all group">
+          <div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+            <Plus className="h-4 w-4 text-primary" />
+          </div>
+          <div>
+            <p className="text-xs text-muted-foreground">Ir a</p>
+            <p className="text-sm font-semibold text-foreground group-hover:text-primary transition-colors">Nueva Venta</p>
+          </div>
+        </Link>
+        <Link to="/compras"
+          className="flex items-center gap-3 rounded-xl border border-border bg-card px-4 py-3 hover:bg-primary/5 hover:border-primary/30 transition-all group">
+          <div className="h-9 w-9 rounded-lg bg-blue-500/10 flex items-center justify-center shrink-0">
+            <Truck className="h-4 w-4 text-blue-400" />
+          </div>
+          <div>
+            <p className="text-xs text-muted-foreground">Ir a</p>
+            <p className="text-sm font-semibold text-foreground group-hover:text-primary transition-colors">Nueva Compra</p>
+          </div>
+        </Link>
+        <Link to="/insumos"
+          className="flex items-center gap-3 rounded-xl border border-border bg-card px-4 py-3 hover:bg-primary/5 hover:border-primary/30 transition-all group">
+          <div className="h-9 w-9 rounded-lg bg-orange-500/10 flex items-center justify-center shrink-0">
+            <RefreshCw className="h-4 w-4 text-orange-400" />
+          </div>
+          <div>
+            <p className="text-xs text-muted-foreground">Ir a</p>
+            <p className="text-sm font-semibold text-foreground group-hover:text-primary transition-colors">Ajustar Stock</p>
+          </div>
+        </Link>
+        <Link to="/clientes"
+          className="flex items-center gap-3 rounded-xl border border-border bg-card px-4 py-3 hover:bg-primary/5 hover:border-primary/30 transition-all group">
+          <div className="h-9 w-9 rounded-lg bg-green-500/10 flex items-center justify-center shrink-0">
+            <Users className="h-4 w-4 text-green-400" />
+          </div>
+          <div>
+            <p className="text-xs text-muted-foreground">Ir a</p>
+            <p className="text-sm font-semibold text-foreground group-hover:text-primary transition-colors">Clientes</p>
+          </div>
+        </Link>
+      </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-6">
         <StatCard
@@ -130,29 +197,30 @@ export default function Dashboard() {
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 mb-6">
         <div className="table-container p-5">
-          <h3 className="text-base font-semibold text-foreground mb-4">
-            Pedidos del mes
-          </h3>
-          <div className="flex gap-6">
-            <div>
-              <p className="text-sm text-muted-foreground">Facturados</p>
-              <p className="text-2xl font-bold text-success">{pedidosEstado.pedidosFacturados}</p>
+          <h3 className="text-base font-semibold text-foreground mb-4">Pedidos del mes</h3>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="rounded-xl bg-success/10 border border-success/20 px-4 py-3 text-center">
+              <p className="text-xs text-muted-foreground mb-1">Completados</p>
+              <p className="text-3xl font-bold text-success">{pedidosEstado.pedidosFacturados}</p>
             </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Anulados</p>
-              <p className="text-2xl font-bold text-muted-foreground">{pedidosEstado.pedidosAnulados}</p>
+            <div className="rounded-xl bg-muted/30 border border-border px-4 py-3 text-center">
+              <p className="text-xs text-muted-foreground mb-1">Anulados</p>
+              <p className="text-3xl font-bold text-muted-foreground">{pedidosEstado.pedidosAnulados}</p>
             </div>
           </div>
         </div>
         <div className="table-container p-5">
-          <h3 className="text-base font-semibold text-foreground mb-4">
-            Producto más vendido
-          </h3>
-          <p className="text-lg font-medium text-foreground">
-            {productoMasVendido
-              ? `${productoMasVendido.nombre} (${productoMasVendido.cantidadVendida} und)`
-              : "Sin datos"}
-          </p>
+          <h3 className="text-base font-semibold text-foreground mb-4">Producto más vendido</h3>
+          {productoMasVendido ? (
+            <div className="rounded-xl bg-primary/5 border border-primary/20 px-4 py-4">
+              <p className="text-lg font-bold text-foreground">{productoMasVendido.nombre}</p>
+              <p className="text-sm text-muted-foreground mt-1">
+                <span className="font-semibold text-primary">{productoMasVendido.cantidadVendida}</span> unidades vendidas este mes
+              </p>
+            </div>
+          ) : (
+            <p className="text-muted-foreground text-sm">Sin datos disponibles</p>
+          )}
         </div>
       </div>
 
@@ -198,8 +266,8 @@ export default function Dashboard() {
         <div className="table-container">
           <div className="p-5 pb-3 flex items-center justify-between">
             <h3 className="text-base font-semibold text-foreground">Alertas de Stock</h3>
-            <Link to="/productos" className="text-sm text-primary hover:underline">
-              Ver todo
+            <Link to="/insumos" className="text-sm text-primary hover:underline">
+              Ver inventario
             </Link>
           </div>
           <div className="overflow-x-auto">

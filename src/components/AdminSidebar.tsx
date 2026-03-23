@@ -17,11 +17,10 @@ import {
   UserCircle2,
   UsersRound,
   ClipboardList,
-  MessageSquare,
-  History,
   Tags,
   FileCheck,
   KeyRound,
+  Route,
 } from "lucide-react";
 
 interface SidebarItem {
@@ -51,7 +50,7 @@ const menuItems: SidebarItem[] = [
   // Catálogo
   { title: "Productos", url: "/productos", icon: Package, moduloCodigo: "PRODUCTOS" },
   { title: "Categorías", url: "/categorias", icon: Tags, moduloCodigo: "PRODUCTOS" },
-  { title: "Insumos", url: "/insumos", icon: Boxes, moduloCodigo: "INVENTARIO" },
+  { title: "Inventario", url: "/insumos", icon: Boxes, moduloCodigo: "INVENTARIO" },
   // Operaciones (primero compras, luego ventas)
   { title: "Compras", url: "/compras", icon: Truck, moduloCodigo: "COMPRAS" },
   { title: "Ventas", url: "/ventas", icon: ShoppingCart, moduloCodigo: "VENTAS" },
@@ -60,7 +59,6 @@ const menuItems: SidebarItem[] = [
   { title: "Clientes", url: "/clientes", icon: UserCircle2, moduloCodigo: "CLIENTES" },
   { title: "Proveedores", url: "/proveedores", icon: UsersRound, moduloCodigo: "PROVEEDORES" },
   // Análisis
-  { title: "Historial de pedidos", url: "/historial-pedidos", icon: History, moduloCodigo: "HISTORIAL_PEDIDOS" },
   {
     title: "Reportes",
     url: "/reportes",
@@ -76,7 +74,7 @@ const menuItems: SidebarItem[] = [
   {
     title: "Logística",
     url: "/entregas",
-    icon: Truck,
+    icon: Route,
     moduloCodigo: "LOGISTICA_ENTREGAS",
     children: [
       { title: "Entregas (3 a 5 días)", url: "/entregas" },
@@ -87,13 +85,13 @@ const menuItems: SidebarItem[] = [
     ],
   },
   // Comunicación
-  { title: "Solicitudes", url: "/solicitudes", icon: ClipboardList, moduloCodigo: "SOLICITUDES_STOCK" },
-  { title: "Mensajes", url: "/mensajes", icon: MessageSquare, moduloCodigo: "MENSAJES" },
+  { title: "Solicitudes de stock", url: "/solicitudes", icon: ClipboardList, moduloCodigo: "SOLICITUDES_STOCK" },
   // Administración
   { title: "Usuarios", url: "/usuarios", icon: Users, moduloCodigo: "USUARIOS" },
   { title: "Solicitudes de recuperación", url: "/solicitudes-recuperacion", icon: KeyRound, rolesPermitidos: ["SUPERUSUARIO", "ADMIN", "SOPORTE"] },
   { title: "Sectores", url: "/sectores", icon: Building2, requiresSuperadmin: true },
   { title: "Suscripciones", url: "/suscripciones", icon: FileCheck, requiresSuperadmin: true },
+  { title: "Config. Fiscal SUNAT", url: "/configuracion-fiscal", icon: Building2, rolesPermitidos: ["SUPERUSUARIO", "ADMIN"] },
 ];
 
 function SidebarUser() {

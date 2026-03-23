@@ -208,7 +208,7 @@ export default function Productos() {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-border bg-muted/50">
-                <th className="px-5 py-3 text-left font-medium text-muted-foreground">ID</th>
+                <th className="px-5 py-3 text-left font-medium text-muted-foreground">Imagen</th>
                 <th className="px-5 py-3 text-left font-medium text-muted-foreground">Código</th>
                 <th className="px-5 py-3 text-left font-medium text-muted-foreground">Producto</th>
                 <th className="px-5 py-3 text-left font-medium text-muted-foreground">Categoría</th>
@@ -227,7 +227,20 @@ export default function Productos() {
               ) : (
                 filtered.map((p) => (
                   <tr key={p.id} className="border-b border-border last:border-0 hover:bg-muted/30 transition-colors">
-                    <td className="px-5 py-3 font-mono text-muted-foreground">{p.id}</td>
+                    <td className="px-5 py-3">
+                      {p.imagenUrl ? (
+                        <img
+                          src={p.imagenUrl}
+                          alt={p.nombre}
+                          className="h-10 w-10 rounded-lg object-cover border border-border"
+                          onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
+                        />
+                      ) : (
+                        <div className="h-10 w-10 rounded-lg border border-border bg-muted/40 flex items-center justify-center text-lg">
+                          📦
+                        </div>
+                      )}
+                    </td>
                     <td className="px-5 py-3 text-muted-foreground">{p.codigo ?? "—"}</td>
                     <td className="px-5 py-3 font-medium text-foreground">{p.nombre}</td>
                     <td className="px-5 py-3 text-muted-foreground">{p.categoriaNombre ?? "—"}</td>
@@ -331,7 +344,26 @@ export default function Productos() {
             </div>
             <div>
               <label className="text-sm font-medium">URL imagen</label>
-              <input className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm" placeholder="https://..." value={form.imagenUrl} onChange={(e) => setForm((f) => ({ ...f, imagenUrl: e.target.value }))} />
+              <input
+                className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                placeholder="https://..."
+                value={form.imagenUrl}
+                onChange={(e) => setForm((f) => ({ ...f, imagenUrl: e.target.value }))}
+              />
+              {form.imagenUrl?.trim() && (
+                <div className="mt-2 flex items-center gap-3">
+                  <img
+                    src={form.imagenUrl.trim()}
+                    alt="Vista previa"
+                    className="h-16 w-16 rounded-lg object-cover border border-border bg-muted/40"
+                    onError={(e) => {
+                      (e.currentTarget as HTMLImageElement).src = "";
+                      (e.currentTarget as HTMLImageElement).style.display = "none";
+                    }}
+                  />
+                  <span className="text-xs text-muted-foreground">Vista previa</span>
+                </div>
+              )}
             </div>
             <div className="flex justify-end gap-2">
               <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>Cancelar</Button>

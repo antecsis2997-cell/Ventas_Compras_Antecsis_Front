@@ -35,6 +35,7 @@ import VistaPantalla2 from "./pages/VistaPantalla2";
 import MetricasLogistica from "./pages/MetricasLogistica";
 import InformePedidosPendientesDelivery from "./pages/InformePedidosPendientesDelivery";
 import SolicitudesRecuperacion from "./pages/SolicitudesRecuperacion";
+import ConfiguracionFiscal from "./pages/ConfiguracionFiscal";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -120,6 +121,7 @@ const App = () => (
             <Route path="/reportes/mensuales" element={<DashboardLayout><ModuleRoute modulo="REPORTES"><ReportesMensuales /></ModuleRoute></DashboardLayout>} />
             <Route path="/reportes/anuales" element={<DashboardLayout><ModuleRoute modulo="REPORTES"><ReportesAnuales /></ModuleRoute></DashboardLayout>} />
             <Route path="/facturacion" element={<DashboardLayout><ModuleRoute modulo="VENTAS"><Facturacion /></ModuleRoute></DashboardLayout>} />
+            <Route path="/configuracion-fiscal" element={<DashboardLayout><ConfiguracionFiscal /></DashboardLayout>} />
             <Route path="/inicio" element={<Navigate to="/dashboard" replace />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
