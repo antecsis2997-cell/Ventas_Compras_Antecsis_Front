@@ -5,8 +5,6 @@ export interface SectorResponse {
   nombreSector: string;
   telefono: string | null;
   direccion: string | null;
-  prefijoBoleta: string | null;
-  prefijoFactura: string | null;
 }
 
 export interface PageResponse<T> {
@@ -21,8 +19,6 @@ export interface SectorRequest {
   nombreSector: string;
   telefono?: string | null;
   direccion?: string | null;
-  prefijoBoleta?: string | null;
-  prefijoFactura?: string | null;
 }
 
 const BASE = "/api/sectores";

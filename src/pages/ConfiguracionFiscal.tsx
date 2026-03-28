@@ -290,9 +290,10 @@ export default function ConfiguracionFiscal() {
           </div>
         )}
 
-        {/* Modal formulario */}
+        {/* Modal formulario: ADMIN puede editar todo, incluyendo las series */}
         {showForm && <FormularioModal form={form} setForm={setForm} error={error} saving={saving}
-          onSubmit={handleSubmit} onClose={() => setShowForm(false)} onPfxFile={handlePfxFile} bloqueadoSector />}
+          onSubmit={handleSubmit} onClose={() => setShowForm(false)} onPfxFile={handlePfxFile}
+          bloqueadoSector seriesReadOnly={false} />}
       </div>
     );
   }
@@ -421,8 +422,10 @@ export default function ConfiguracionFiscal() {
         <div className="text-center py-16 text-sm text-muted-foreground">Cargando configuraciones...</div>
       )}
 
+      {/* Modal formulario: SUPERUSUARIO NO puede editar las series (solo lectura) */}
       {showForm && <FormularioModal form={form} setForm={setForm} error={error} saving={saving}
-        onSubmit={handleSubmit} onClose={() => setShowForm(false)} onPfxFile={handlePfxFile} bloqueadoSector={false} />}
+        onSubmit={handleSubmit} onClose={() => setShowForm(false)} onPfxFile={handlePfxFile}
+        bloqueadoSector={false} seriesReadOnly={true} />}
     </div>
   );
 }
@@ -431,7 +434,7 @@ export default function ConfiguracionFiscal() {
 // Componente del formulario (compartido por ambas vistas)
 // ─────────────────────────────────────────────────────────────────────────────
 function FormularioModal({
-  form, setForm, error, saving, onSubmit, onClose, onPfxFile, bloqueadoSector,
+  form, setForm, error, saving, onSubmit, onClose, onPfxFile, bloqueadoSector, seriesReadOnly,
 }: {
   form: ConfigFiscal;
   setForm: React.Dispatch<React.SetStateAction<ConfigFiscal>>;
@@ -441,6 +444,7 @@ function FormularioModal({
   onClose: () => void;
   onPfxFile: (e: React.ChangeEvent<HTMLInputElement>) => void;
   bloqueadoSector: boolean;
+  seriesReadOnly: boolean;
 }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
@@ -567,16 +571,44 @@ function FormularioModal({
           {/* Series */}
           <section>
             <h3 className="text-sm font-semibold text-white/70 uppercase tracking-wider mb-3">Series de comprobantes</h3>
+            {seriesReadOnly && (
+              <div className="mb-3 flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-4 py-3 text-xs text-white/50">
+                <Lock className="h-3.5 w-3.5 shrink-0" />
+                Las series solo pueden ser modificadas por el administrador de cada bodega. Aquí se muestran como referencia.
+              </div>
+            )}
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="text-xs font-medium text-white/60">Serie Factura (ej: F001) *</label>
-                <input className="mt-1 w-full rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm font-mono text-white focus:outline-none focus:ring-2 focus:ring-primary/50"
-                  value={form.serieFactura} onChange={(e) => setForm((f) => ({ ...f, serieFactura: e.target.value.toUpperCase() }))} maxLength={4} placeholder="F001" />
+                <label className="text-xs font-medium text-white/60">Serie Factura (ej: F001) {!seriesReadOnly && "*"}</label>
+                <input
+                  className={`mt-1 w-full rounded-md border px-3 py-2 text-sm font-mono focus:outline-none ${
+                    seriesReadOnly
+                      ? "border-white/5 bg-white/3 text-white/40 cursor-not-allowed"
+                      : "border-white/10 bg-white/5 text-white focus:ring-2 focus:ring-primary/50"
+                  }`}
+                  value={form.serieFactura}
+                  onChange={(e) => !seriesReadOnly && setForm((f) => ({ ...f, serieFactura: e.target.value.toUpperCase() }))}
+                  maxLength={4}
+                  placeholder="F001"
+                  readOnly={seriesReadOnly}
+                  tabIndex={seriesReadOnly ? -1 : undefined}
+                />
               </div>
               <div>
-                <label className="text-xs font-medium text-white/60">Serie Boleta (ej: B001) *</label>
-                <input className="mt-1 w-full rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm font-mono text-white focus:outline-none focus:ring-2 focus:ring-primary/50"
-                  value={form.serieBoleta} onChange={(e) => setForm((f) => ({ ...f, serieBoleta: e.target.value.toUpperCase() }))} maxLength={4} placeholder="B001" />
+                <label className="text-xs font-medium text-white/60">Serie Boleta (ej: B001) {!seriesReadOnly && "*"}</label>
+                <input
+                  className={`mt-1 w-full rounded-md border px-3 py-2 text-sm font-mono focus:outline-none ${
+                    seriesReadOnly
+                      ? "border-white/5 bg-white/3 text-white/40 cursor-not-allowed"
+                      : "border-white/10 bg-white/5 text-white focus:ring-2 focus:ring-primary/50"
+                  }`}
+                  value={form.serieBoleta}
+                  onChange={(e) => !seriesReadOnly && setForm((f) => ({ ...f, serieBoleta: e.target.value.toUpperCase() }))}
+                  maxLength={4}
+                  placeholder="B001"
+                  readOnly={seriesReadOnly}
+                  tabIndex={seriesReadOnly ? -1 : undefined}
+                />
               </div>
             </div>
           </section>

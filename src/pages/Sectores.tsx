@@ -15,16 +15,12 @@ interface SectorRow {
   nombreSector: string;
   telefono: string | null;
   direccion: string | null;
-  prefijoBoleta: string | null;
-  prefijoFactura: string | null;
 }
 
 const emptyForm = {
   nombreSector: "",
   telefono: "",
   direccion: "",
-  prefijoBoleta: "",
-  prefijoFactura: "",
 };
 
 export default function Sectores() {
@@ -70,8 +66,6 @@ export default function Sectores() {
       nombreSector: s.nombreSector ?? "",
       telefono: s.telefono ?? "",
       direccion: s.direccion ?? "",
-      prefijoBoleta: s.prefijoBoleta ?? "",
-      prefijoFactura: s.prefijoFactura ?? "",
     });
     setFormError("");
     setDialogOpen(true);
@@ -91,8 +85,6 @@ export default function Sectores() {
         nombreSector: nombre,
         telefono: form.telefono?.trim() || null,
         direccion: form.direccion?.trim() || null,
-        prefijoBoleta: form.prefijoBoleta?.trim() || null,
-        prefijoFactura: form.prefijoFactura?.trim() || null,
       };
       if (editingId) {
         await sectoresApi.actualizar(editingId, body);
@@ -123,7 +115,7 @@ export default function Sectores() {
     <>
       <div className="page-header">
         <h1 className="page-title">Sectores / Sedes</h1>
-        <p className="page-subtitle">Gestión de sedes: nombre, teléfono, dirección y serie de comprobantes (ej. B137, F137)</p>
+        <p className="page-subtitle">Gestión de sedes: nombre, teléfono y dirección. Las series de comprobantes se configuran en Configuración Fiscal SUNAT.</p>
       </div>
 
       <div className="table-container">
@@ -148,8 +140,6 @@ export default function Sectores() {
                 <thead className="bg-muted/50">
                   <tr>
                     <th className="text-left p-3 font-medium">Nombre</th>
-                    <th className="text-left p-3 font-medium">Serie Boleta</th>
-                    <th className="text-left p-3 font-medium">Serie Factura</th>
                     <th className="text-left p-3 font-medium">Teléfono</th>
                     <th className="text-left p-3 font-medium">Dirección</th>
                     <th className="text-right p-3 font-medium">Acciones</th>
@@ -158,7 +148,7 @@ export default function Sectores() {
                 <tbody>
                   {sectores.length === 0 ? (
                     <tr>
-                      <td colSpan={6} className="p-6 text-center text-muted-foreground">
+                      <td colSpan={4} className="p-6 text-center text-muted-foreground">
                         No hay sectores. Cree uno con &quot;Nueva sede&quot;.
                       </td>
                     </tr>
@@ -166,8 +156,6 @@ export default function Sectores() {
                     sectores.map((s) => (
                       <tr key={s.id} className="border-t border-border">
                         <td className="p-3">{s.nombreSector}</td>
-                        <td className="p-3 font-mono text-sm">{s.prefijoBoleta || "—"}</td>
-                        <td className="p-3 font-mono text-sm">{s.prefijoFactura || "—"}</td>
                         <td className="p-3">{s.telefono || "—"}</td>
                         <td className="p-3">{s.direccion || "—"}</td>
                         <td className="p-3 text-right">
@@ -239,32 +227,9 @@ export default function Sectores() {
                 placeholder="Opcional"
               />
             </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="text-sm font-medium">Serie boleta</label>
-                <input
-                  type="text"
-                  className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm font-mono"
-                  value={form.prefijoBoleta}
-                  onChange={(e) => setForm((f) => ({ ...f, prefijoBoleta: e.target.value.toUpperCase() }))}
-                  placeholder="Ej. B137"
-                  maxLength={20}
-                />
-                <p className="mt-1 text-xs text-muted-foreground">Ej. B137. Si se configura, el número se genera automático (B137-00000001).</p>
-              </div>
-              <div>
-                <label className="text-sm font-medium">Serie factura</label>
-                <input
-                  type="text"
-                  className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm font-mono"
-                  value={form.prefijoFactura}
-                  onChange={(e) => setForm((f) => ({ ...f, prefijoFactura: e.target.value.toUpperCase() }))}
-                  placeholder="Ej. F137"
-                  maxLength={20}
-                />
-                <p className="mt-1 text-xs text-muted-foreground">Ej. F137. Opcional.</p>
-              </div>
-            </div>
+            <p className="text-xs text-muted-foreground rounded-md border border-border bg-muted/30 px-3 py-2">
+              Las series de boletas y facturas se configuran en <strong>Configuración Fiscal SUNAT</strong> por cada sede.
+            </p>
             {formError && <p className="text-sm text-destructive">{formError}</p>}
             <div className="flex justify-end gap-2">
               <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>

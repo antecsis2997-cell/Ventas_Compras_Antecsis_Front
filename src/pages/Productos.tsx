@@ -8,6 +8,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { api } from "@/lib/api";
+import { estiloMarcoImagenClaro } from "@/lib/productoImagenMarca";
 import { formatMoney } from "@/lib/utils";
 
 const UNIDADES = [{ value: "", label: "—" }, { value: "UND", label: "Unidad" }, { value: "KG", label: "Kg" }, { value: "MG", label: "Mg" }, { value: "GRAMOS", label: "Gramos" }];
@@ -228,18 +229,31 @@ export default function Productos() {
                 filtered.map((p) => (
                   <tr key={p.id} className="border-b border-border last:border-0 hover:bg-muted/30 transition-colors">
                     <td className="px-5 py-3">
-                      {p.imagenUrl ? (
-                        <img
-                          src={p.imagenUrl}
-                          alt={p.nombre}
-                          className="h-10 w-10 rounded-lg object-cover border border-border"
-                          onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
-                        />
-                      ) : (
-                        <div className="h-10 w-10 rounded-lg border border-border bg-muted/40 flex items-center justify-center text-lg">
-                          📦
-                        </div>
-                      )}
+                      <div className="relative h-10 w-10 shrink-0 rounded-lg" style={estiloMarcoImagenClaro()}>
+                        {p.imagenUrl ? (
+                          <>
+                            <img
+                              key={`tabla-img-${p.id}`}
+                              src={p.imagenUrl}
+                              alt={p.nombre}
+                              className="h-10 w-10 rounded-[6px] object-cover"
+                              onError={(e) => {
+                                const img = e.currentTarget;
+                                img.style.display = "none";
+                                const fb = img.nextElementSibling as HTMLElement | null;
+                                if (fb) fb.style.display = "flex";
+                              }}
+                            />
+                            <div className="absolute inset-0 rounded-[6px] bg-muted/40 items-center justify-center text-lg hidden">
+                              📦
+                            </div>
+                          </>
+                        ) : (
+                          <div className="flex h-10 w-10 items-center justify-center rounded-[6px] bg-muted/40 text-lg">
+                            📦
+                          </div>
+                        )}
+                      </div>
                     </td>
                     <td className="px-5 py-3 text-muted-foreground">{p.codigo ?? "—"}</td>
                     <td className="px-5 py-3 font-medium text-foreground">{p.nombre}</td>
@@ -346,22 +360,30 @@ export default function Productos() {
               <label className="text-sm font-medium">URL imagen</label>
               <input
                 className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                placeholder="https://..."
+                placeholder="https://ejemplo.com/imagen.jpg"
                 value={form.imagenUrl}
                 onChange={(e) => setForm((f) => ({ ...f, imagenUrl: e.target.value }))}
               />
+              <p className="mt-1 text-[11px] text-muted-foreground">
+                Debe ser un enlace directo a la imagen (.jpg, .png, .webp). No funciona con links de Google Imágenes ni páginas web.
+              </p>
               {form.imagenUrl?.trim() && (
                 <div className="mt-2 flex items-center gap-3">
-                  <img
-                    src={form.imagenUrl.trim()}
-                    alt="Vista previa"
-                    className="h-16 w-16 rounded-lg object-cover border border-border bg-muted/40"
-                    onError={(e) => {
-                      (e.currentTarget as HTMLImageElement).src = "";
-                      (e.currentTarget as HTMLImageElement).style.display = "none";
-                    }}
-                  />
-                  <span className="text-xs text-muted-foreground">Vista previa</span>
+                  <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-lg" style={estiloMarcoImagenClaro()}>
+                    <img
+                      src={form.imagenUrl.trim()}
+                      alt="Vista previa"
+                      className="h-16 w-16 object-cover bg-muted/40"
+                      onError={(e) => {
+                        const img = e.currentTarget;
+                        img.style.display = "none";
+                        const fb = img.nextElementSibling as HTMLElement | null;
+                        if (fb) fb.classList.replace("hidden", "flex");
+                      }}
+                    />
+                    <div className="absolute inset-0 hidden items-center justify-center bg-muted/40 text-2xl">📦</div>
+                  </div>
+                  <span className="text-xs text-muted-foreground">Vista previa — si aparece 📦 la URL no es válida</span>
                 </div>
               )}
             </div>
