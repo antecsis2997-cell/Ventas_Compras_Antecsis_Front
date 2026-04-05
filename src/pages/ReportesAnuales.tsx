@@ -1,50 +1,34 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { api } from "@/lib/api";
 import { Button } from "@/components/ui/button";
-import { FileSpreadsheet, FileText } from "lucide-react";
-import { formatMoney } from "@/lib/utils";
+import { Label } from "@/components/ui/label";
 import {
-  ResponsiveContainer,
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  PieChart,
-  Pie,
-  Cell,
-} from "recharts";
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { FileSpreadsheet, FileText } from "lucide-react";
+import { ReporteVentasVisual, type ReporteVentasDTO } from "@/components/reportes/ReporteVentasVisual";
 
 export default function ReportesAnuales() {
   const hoy = new Date();
   const [year, setYear] = useState(hoy.getFullYear());
-  const [data, setData] = useState<{
-    totalVentas: number;
-    montoTotal: number;
-    graficoLabels?: string[];
-    graficoValores?: number[];
-    completadas?: number;
-  } | null>(null);
+  const [data, setData] = useState<ReporteVentasDTO | null>(null);
   const [loading, setLoading] = useState(false);
   const [descargando, setDescargando] = useState<"excel" | "pdf" | null>(null);
 
   useEffect(() => {
     setLoading(true);
-    api.get("/api/dashboard/ventas-anio", { params: { year } })
+    api
+      .get("/api/dashboard/ventas-anio", { params: { year } })
       .then((res) => setData(res.data))
-      .catch(() => setData({ totalVentas: 0, montoTotal: 0 }))
+      .catch(() => setData({ totalVentas: 0, montoTotal: 0, completadas: 0, anuladas: 0, pendientes: 0 }))
       .finally(() => setLoading(false));
   }, [year]);
 
-  const lineData =
-    data?.graficoLabels?.map((label, idx) => ({
-      label,
-      monto: data.graficoValores?.[idx] ?? 0,
-    })) ?? [];
-
-  const completadas = Number(data?.completadas ?? 0);
-  const otros = Math.max(0, Number(data?.totalVentas ?? 0) - completadas);
+  const periodLabel = useMemo(() => `Año fiscal ${year}`, [year]);
 
   const descargar = async (tipo: "excel" | "pdf") => {
     const first = `${year}-01-01`;
@@ -68,118 +52,50 @@ export default function ReportesAnuales() {
     }
   };
 
-  const years = Array.from({ length: 5 }, (_, i) => hoy.getFullYear() - i);
+  const years = Array.from({ length: 8 }, (_, i) => hoy.getFullYear() - i);
 
   return (
     <>
       <div className="page-header">
-        <h1 className="page-title">Ventas Anuales</h1>
-        <p className="page-subtitle">Consulte las ventas de un año y descargue el reporte</p>
+        <h1 className="page-title">Ventas anuales</h1>
+        <p className="page-subtitle">Barras + tendencia por mes, KPIs anuales y exportación</p>
       </div>
 
-      <div className="table-container p-6 max-w-2xl space-y-6">
-        <div className="flex flex-wrap items-end gap-4">
+      <ReporteVentasVisual
+        variant="anio"
+        data={data}
+        loading={loading}
+        periodLabel={periodLabel}
+        filters={
           <div className="space-y-2">
-            <label className="text-sm font-medium text-foreground">Año</label>
-            <select
-              className="rounded-md border border-input bg-background px-3 py-2 text-sm min-w-[120px]"
-              value={year}
-              onChange={(e) => setYear(Number(e.target.value))}
-            >
-              {years.map((y) => (
-                <option key={y} value={y}>{y}</option>
-              ))}
-            </select>
+            <Label className="text-xs font-medium text-muted-foreground">Año</Label>
+            <Select value={String(year)} onValueChange={(v) => setYear(Number(v))}>
+              <SelectTrigger className="w-[140px] shadow-sm">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {years.map((y) => (
+                  <SelectItem key={y} value={String(y)}>
+                    {y}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
-        </div>
-
-        {loading ? (
-          <p className="text-sm text-muted-foreground">Cargando...</p>
-        ) : data ? (
-          <div className="space-y-6">
-            <div className="rounded-lg border border-border bg-card p-6">
-              <h3 className="text-base font-semibold text-foreground mb-4">Resumen del año {year}</h3>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <p className="text-sm text-muted-foreground">Cantidad de ventas</p>
-                  <p className="text-2xl font-bold text-foreground">{data.totalVentas}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Monto total</p>
-                  <p className="text-2xl font-bold text-foreground">{formatMoney(Number(data.montoTotal))}</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="rounded-lg border border-border bg-card p-6">
-              <h3 className="text-base font-semibold text-foreground mb-4">Gráfico de monto</h3>
-              <div className="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-6 items-center">
-                <div className="w-full h-[240px]">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={lineData}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="label" tick={{ fontSize: 12 }} />
-                      <YAxis />
-                      <Tooltip />
-                      <Line
-                        type="monotone"
-                        dataKey="monto"
-                        stroke="#4f46e5"
-                        strokeWidth={3}
-                        dot={{ r: 3 }}
-                        activeDot={{ r: 6 }}
-                      />
-                    </LineChart>
-                  </ResponsiveContainer>
-                </div>
-                <div className="flex flex-col gap-3">
-                  <div className="text-center">
-                    <p className="text-sm text-muted-foreground">Completadas</p>
-                    <p className="text-2xl font-bold text-success">{completadas}</p>
-                  </div>
-                  <div className="w-full h-[180px]">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <PieChart>
-                        <Pie
-                          data={[
-                            { name: "Completadas", value: completadas },
-                            { name: "Otros", value: otros },
-                          ]}
-                          dataKey="value"
-                          nameKey="name"
-                          innerRadius={45}
-                          outerRadius={70}
-                          paddingAngle={3}
-                          stroke="none"
-                        >
-                          <Cell fill="#22c55e" />
-                          <Cell fill="#94a3b8" />
-                        </Pie>
-                      </PieChart>
-                    </ResponsiveContainer>
-                  </div>
-                  <p className="text-center text-xs text-muted-foreground">
-                    {Number(data.totalVentas) === 0
-                      ? "Sin ventas"
-                      : `Completadas: ${Math.round((completadas / Number(data.totalVentas)) * 100)}%`}
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        ) : null}
-
-        <div className="flex flex-wrap gap-2">
-          <Button variant="outline" disabled={descargando !== null} onClick={() => descargar("excel")}>
-            <FileSpreadsheet className="mr-2 h-4 w-4" />
-            {descargando === "excel" ? "Descargando..." : "Descargar Excel"}
-          </Button>
-          <Button variant="outline" disabled={descargando !== null} onClick={() => descargar("pdf")}>
-            <FileText className="mr-2 h-4 w-4" />
-            {descargando === "pdf" ? "Descargando..." : "Descargar PDF"}
-          </Button>
-        </div>
-      </div>
+        }
+        exportSlot={
+          <>
+            <Button variant="outline" className="gap-2 shadow-sm" disabled={descargando !== null} onClick={() => descargar("excel")}>
+              <FileSpreadsheet className="h-4 w-4" />
+              {descargando === "excel" ? "Descargando…" : "Excel"}
+            </Button>
+            <Button variant="outline" className="gap-2 shadow-sm" disabled={descargando !== null} onClick={() => descargar("pdf")}>
+              <FileText className="h-4 w-4" />
+              {descargando === "pdf" ? "Descargando…" : "PDF"}
+            </Button>
+          </>
+        }
+      />
     </>
   );
 }

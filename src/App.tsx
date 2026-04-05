@@ -11,6 +11,7 @@ import ResetPassword from "./pages/ResetPassword";
 import Landing from "./pages/Landing";
 import Planes from "./pages/Planes";
 import Index from "./pages/Index";
+import PlataformaSectores from "./pages/PlataformaSectores";
 import Productos from "./pages/Productos";
 import Ventas from "./pages/Ventas";
 import Compras from "./pages/Compras";
@@ -36,6 +37,9 @@ import MetricasLogistica from "./pages/MetricasLogistica";
 import InformePedidosPendientesDelivery from "./pages/InformePedidosPendientesDelivery";
 import SolicitudesRecuperacion from "./pages/SolicitudesRecuperacion";
 import ConfiguracionFiscal from "./pages/ConfiguracionFiscal";
+import CuentaLicencia from "./pages/CuentaLicencia";
+import BandejaNotificaciones from "./pages/BandejaNotificaciones";
+import RubrosComercialesAdmin from "./pages/RubrosComercialesAdmin";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -62,6 +66,14 @@ function SuscripcionesRoute() {
     return <Navigate to="/dashboard" replace />;
   }
   return <Suscripciones />;
+}
+
+function RubrosComercialesRoute() {
+  const { rolNombre } = useAuth();
+  if (rolNombre !== "SUPERUSUARIO") {
+    return <Navigate to="/dashboard" replace />;
+  }
+  return <RubrosComercialesAdmin />;
 }
 
 function SolicitudesRecuperacionRoute() {
@@ -93,6 +105,7 @@ const App = () => (
             <Route path="/planes" element={<Planes />} />
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/dashboard" element={<DashboardLayout><ModuleRoute modulo="DASHBOARD"><Index /></ModuleRoute></DashboardLayout>} />
+            <Route path="/plataforma-sectores" element={<DashboardLayout><ModuleRoute modulo="DASHBOARD"><PlataformaSectores /></ModuleRoute></DashboardLayout>} />
             <Route path="/productos" element={<DashboardLayout><ModuleRoute modulo="PRODUCTOS"><Productos /></ModuleRoute></DashboardLayout>} />
             <Route path="/ventas" element={<DashboardLayout><ModuleRoute modulo="VENTAS"><Ventas /></ModuleRoute></DashboardLayout>} />
             <Route path="/vista-pantalla-1" element={<DashboardLayout><ModuleRoute modulo="DASHBOARD"><VistaPantalla1 /></ModuleRoute></DashboardLayout>} />
@@ -107,6 +120,9 @@ const App = () => (
             <Route path="/categorias" element={<DashboardLayout><ModuleRoute modulo="PRODUCTOS"><Categorias /></ModuleRoute></DashboardLayout>} />
             <Route path="/sectores" element={<DashboardLayout><SectoresRoute /></DashboardLayout>} />
             <Route path="/suscripciones" element={<DashboardLayout><SuscripcionesRoute /></DashboardLayout>} />
+            <Route path="/admin/rubros-comerciales" element={<DashboardLayout><RubrosComercialesRoute /></DashboardLayout>} />
+            <Route path="/cuenta/licencia" element={<DashboardLayout><CuentaLicencia /></DashboardLayout>} />
+            <Route path="/cuenta/bandeja" element={<DashboardLayout><BandejaNotificaciones /></DashboardLayout>} />
             <Route path="/localizacion" element={<DashboardLayout><PlaceholderPage title="Localización" subtitle="Gestión de ubicaciones" /></DashboardLayout>} />
             <Route path="/solicitudes" element={<DashboardLayout><ModuleRoute modulo="SOLICITUDES_STOCK"><Solicitudes /></ModuleRoute></DashboardLayout>} />
             <Route path="/entregas" element={<DashboardLayout><ModuleRoute modulo="LOGISTICA_ENTREGAS"><Entregas /></ModuleRoute></DashboardLayout>} />
@@ -122,7 +138,7 @@ const App = () => (
             <Route path="/reportes/anuales" element={<DashboardLayout><ModuleRoute modulo="REPORTES"><ReportesAnuales /></ModuleRoute></DashboardLayout>} />
             <Route path="/facturacion" element={<DashboardLayout><ModuleRoute modulo="VENTAS"><Facturacion /></ModuleRoute></DashboardLayout>} />
             <Route path="/configuracion-fiscal" element={<DashboardLayout><ConfiguracionFiscal /></DashboardLayout>} />
-            <Route path="/inicio" element={<Navigate to="/dashboard" replace />} />
+            <Route path="/inicio" element={<Navigate to="/plataforma-sectores" replace />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

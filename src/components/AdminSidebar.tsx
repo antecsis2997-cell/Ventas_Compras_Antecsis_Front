@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { logout } from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
@@ -21,6 +21,8 @@ import {
   FileCheck,
   KeyRound,
   Route,
+  BadgeCheck,
+  UserCog,
 } from "lucide-react";
 
 interface SidebarItem {
@@ -34,18 +36,22 @@ interface SidebarItem {
   rolesPermitidos?: string[];
 }
 
-const menuItems: SidebarItem[] = [
+function buildMenuItems(esSuperusuario: boolean): SidebarItem[] {
+  const dashboardChildren = [
+    ...(!esSuperusuario ? [{ title: "Plataforma sectores", url: "/plataforma-sectores" }] : []),
+    { title: "Inicio", url: "/dashboard" },
+    { title: "Vista Pantalla 1", url: "/vista-pantalla-1" },
+    { title: "Vista Pantalla 2", url: "/vista-pantalla-2" },
+  ];
+
+  const items: SidebarItem[] = [
   // Vista general
   {
     title: "Dashboard",
     url: "/dashboard",
     icon: LayoutDashboard,
     moduloCodigo: "DASHBOARD",
-    children: [
-      { title: "Inicio", url: "/dashboard" },
-      { title: "Vista Pantalla 1", url: "/vista-pantalla-1" },
-      { title: "Vista Pantalla 2", url: "/vista-pantalla-2" },
-    ],
+    children: dashboardChildren,
   },
   // Catálogo
   { title: "Productos", url: "/productos", icon: Package, moduloCodigo: "PRODUCTOS" },
@@ -86,13 +92,37 @@ const menuItems: SidebarItem[] = [
   },
   // Comunicación
   { title: "Solicitudes de stock", url: "/solicitudes", icon: ClipboardList, moduloCodigo: "SOLICITUDES_STOCK" },
+  {
+    title: "Mi cuenta",
+    url: "/cuenta/licencia",
+    icon: BadgeCheck,
+    children: [
+      { title: "Licencia", url: "/cuenta/licencia" },
+      { title: "Bandeja del sistema", url: "/cuenta/bandeja" },
+    ],
+  },
   // Administración
   { title: "Usuarios", url: "/usuarios", icon: Users, moduloCodigo: "USUARIOS" },
   { title: "Solicitudes de recuperación", url: "/solicitudes-recuperacion", icon: KeyRound, rolesPermitidos: ["SUPERUSUARIO", "ADMIN", "SOPORTE"] },
   { title: "Sectores", url: "/sectores", icon: Building2, requiresSuperadmin: true },
   { title: "Suscripciones", url: "/suscripciones", icon: FileCheck, requiresSuperadmin: true },
+  { title: "Rubros comerciales", url: "/admin/rubros-comerciales", icon: Tags, requiresSuperadmin: true },
   { title: "Config. Fiscal SUNAT", url: "/configuracion-fiscal", icon: Building2, rolesPermitidos: ["SUPERUSUARIO", "ADMIN"] },
-];
+  ];
+
+  if (esSuperusuario) {
+    const idx = items.findIndex((i) => i.title === "Usuarios");
+    items.splice(Math.max(0, idx), 0, {
+      title: "Perfil de superusuario",
+      url: "/plataforma-sectores",
+      icon: UserCog,
+      requiresSuperadmin: true,
+      children: [{ title: "Plataforma sectores", url: "/plataforma-sectores" }],
+    });
+  }
+
+  return items;
+}
 
 function SidebarUser() {
   const navigate = useNavigate();
@@ -135,13 +165,15 @@ export function AdminSidebar({ collapsed, onToggle }: AdminSidebarProps) {
   const location = useLocation();
   const { rolNombre, hasModule } = useAuth();
   const isSuperusuario = rolNombre === "SUPERUSUARIO";
+  const menuItems = useMemo(() => buildMenuItems(isSuperusuario), [isSuperusuario]);
+
   // No desplegar por defecto; abrir solo la sección donde el usuario está ubicado.
   const [openMenus, setOpenMenus] = useState<string[]>(() => {
     const isActive = (url: string) => location.pathname === url;
     const isChildActive = (children?: { url: string }[]) =>
       children?.some((c) => location.pathname === c.url);
-
-    return menuItems
+    const initial = buildMenuItems(rolNombre === "SUPERUSUARIO");
+    return initial
       .filter((item) => item.children && (isActive(item.url) || isChildActive(item.children)))
       .map((item) => item.title);
   });

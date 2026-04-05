@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { StatCard } from "@/components/StatCard";
+import { DashboardAnalytics, type VentasSerieDTO } from "@/components/dashboard/DashboardAnalytics";
 import { api } from "@/lib/api";
 import { formatMoney } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
@@ -28,11 +29,30 @@ function getFechaLarga() {
   });
 }
 
+const MESES_LARGO = [
+  "enero", "febrero", "marzo", "abril", "mayo", "junio",
+  "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre",
+];
+
+const emptySerie = (): VentasSerieDTO => ({
+  totalVentas: 0,
+  montoTotal: 0,
+  graficoLabels: [],
+  graficoValores: [],
+  completadas: 0,
+  anuladas: 0,
+  pendientes: 0,
+});
+
 export default function Dashboard() {
   const { username } = useAuth();
-  const [ventasHoy, setVentasHoy] = useState({ totalVentas: 0, montoTotal: 0 });
-  const [ventasMes, setVentasMes] = useState({ totalVentas: 0, montoTotal: 0 });
-  const [ventasAnio, setVentasAnio] = useState({ totalVentas: 0, montoTotal: 0 });
+  const [ventasHoy, setVentasHoy] = useState<VentasSerieDTO>(emptySerie);
+  const [ventasMes, setVentasMes] = useState<VentasSerieDTO>(emptySerie);
+  const [ventasAnio, setVentasAnio] = useState<VentasSerieDTO>(emptySerie);
+  const [dashboardYearMonth, setDashboardYearMonth] = useState(() => {
+    const d = new Date();
+    return { year: d.getFullYear(), month: d.getMonth() + 1 };
+  });
   const [pedidosEstado, setPedidosEstado] = useState({ pedidosFacturados: 0, pedidosAnulados: 0 });
   const [productoMasVendido, setProductoMasVendido] = useState<{ nombre: string; cantidadVendida: number } | null>(null);
   const [stockBajoCount, setStockBajoCount] = useState(0);
@@ -46,6 +66,7 @@ export default function Dashboard() {
     const fechaHoy = hoy.toISOString().slice(0, 10);
     const year = hoy.getFullYear();
     const month = hoy.getMonth() + 1;
+    setDashboardYearMonth({ year, month });
 
     const load = async () => {
       setLoading(true);
@@ -159,7 +180,7 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-6">
         <StatCard
           title="Ventas Hoy"
-          value={formatMoney(Number(ventasHoy.montoTotal))}
+          value={formatMoney(Number(ventasHoy.montoTotal ?? 0))}
           change={`${ventasHoy.totalVentas} ventas`}
           changeType="neutral"
           icon={DollarSign}
@@ -168,7 +189,7 @@ export default function Dashboard() {
         />
         <StatCard
           title="Ventas del Mes"
-          value={formatMoney(Number(ventasMes.montoTotal))}
+          value={formatMoney(Number(ventasMes.montoTotal ?? 0))}
           change={`${ventasMes.totalVentas} ventas`}
           changeType="neutral"
           icon={ShoppingCart}
@@ -177,7 +198,7 @@ export default function Dashboard() {
         />
         <StatCard
           title="Ventas del Año"
-          value={formatMoney(Number(ventasAnio.montoTotal))}
+          value={formatMoney(Number(ventasAnio.montoTotal ?? 0))}
           change={`${ventasAnio.totalVentas} ventas`}
           changeType="neutral"
           icon={TrendingUp}
@@ -194,6 +215,14 @@ export default function Dashboard() {
           iconBg="bg-warning/10"
         />
       </div>
+
+      <DashboardAnalytics
+        yearLabel={dashboardYearMonth.year}
+        monthLabel={MESES_LARGO[dashboardYearMonth.month - 1] ?? ""}
+        ventasHoy={ventasHoy}
+        ventasMes={ventasMes}
+        ventasAnio={ventasAnio}
+      />
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 mb-6">
         <div className="table-container p-5">

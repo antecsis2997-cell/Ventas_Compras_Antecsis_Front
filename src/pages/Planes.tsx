@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, CreditCard, Wallet, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -29,18 +29,22 @@ const PLANES = [
   },
   {
     id: "AVANZADO",
-    nombre: "Plan Avanzado",
+    nombre: "Plan Premium",
     descripcion: "Solución completa para empresas. Todas las funcionalidades.",
     caracteristicas: ["Usuarios ilimitados", "Todas las funciones", "CRM, RRHH, Finanzas", "Soporte dedicado"],
     precio: 1500,
   },
 ];
 
+type RubroOption = { codigo: string; nombre: string };
+
 const PAYU_DOCS_URL = "https://developers.payulatam.com/latam/es/docs/integrations/api-integration/payments-api-peru.html#charge";
 
 interface FormPago {
   ruc: string;
   nombreRuc: string;
+  correoAdministrador: string;
+  rubroCodigo: string;
   nombreTitular: string;
   numeroTarjeta: string;
   fechaCaducidad: string;
@@ -50,11 +54,14 @@ interface FormPago {
 
 export default function Planes() {
   const navigate = useNavigate();
+  const [rubros, setRubros] = useState<RubroOption[]>([]);
   const [planSeleccionado, setPlanSeleccionado] = useState<string | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [form, setForm] = useState<FormPago>({
     ruc: "",
     nombreRuc: "",
+    correoAdministrador: "",
+    rubroCodigo: "",
     nombreTitular: "",
     numeroTarjeta: "",
     fechaCaducidad: "",
@@ -65,9 +72,26 @@ export default function Planes() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
 
+  useEffect(() => {
+    api
+      .get<RubroOption[]>("/api/rubros-comerciales")
+      .then((res) => setRubros(res.data ?? []))
+      .catch(() => setRubros([]));
+  }, []);
+
   const openComprar = (planId: string) => {
     setPlanSeleccionado(planId);
-    setForm({ ruc: "", nombreRuc: "", nombreTitular: "", numeroTarjeta: "", fechaCaducidad: "", cvv: "", conCuotas: false });
+    setForm({
+      ruc: "",
+      nombreRuc: "",
+      correoAdministrador: "",
+      rubroCodigo: "",
+      nombreTitular: "",
+      numeroTarjeta: "",
+      fechaCaducidad: "",
+      cvv: "",
+      conCuotas: false,
+    });
     setError("");
     setSuccess(false);
     setDialogOpen(true);
@@ -79,8 +103,13 @@ export default function Planes() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-    if (!form.ruc?.trim() || !form.nombreRuc?.trim() || !form.nombreTitular?.trim()) {
-      setError("Complete RUC, nombre del RUC y nombre del titular");
+    if (!form.ruc?.trim() || !form.nombreRuc?.trim()) {
+      setError("Complete RUC y nombre del RUC");
+      return;
+    }
+    const email = form.correoAdministrador?.trim();
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      setError("Ingrese un correo válido del administrador del plan (recibirá la licencia)");
       return;
     }
     if (!planSeleccionado) return;
@@ -90,7 +119,9 @@ export default function Planes() {
         plan: planSeleccionado,
         ruc: form.ruc.trim(),
         nombreCliente: form.nombreRuc.trim(),
-        nombreTitularTarjeta: form.nombreTitular.trim(),
+        correoAdministrador: email,
+        rubroCodigo: form.rubroCodigo?.trim() || null,
+        nombreTitularTarjeta: form.nombreTitular.trim() || null,
         numeroTarjeta: form.numeroTarjeta.replace(/\s/g, "") || null,
         fechaCaducidadTarjeta: form.fechaCaducidad || null,
         sectorId: null,
@@ -165,7 +196,7 @@ export default function Planes() {
             <div className="py-8 text-center space-y-2">
               <p className="text-green-600 font-medium">¡Pago registrado correctamente!</p>
               <p className="text-sm text-muted-foreground">
-                Su suscripción ha sido activada. Redirigiendo al inicio de sesión...
+                Revise su correo: le enviamos la clave de licencia. Luego inicie sesión y active la licencia en Cuenta → Licencia.
               </p>
             </div>
           ) : (
@@ -218,6 +249,35 @@ export default function Planes() {
                           placeholder="Razón social"
                           required
                         />
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium">Correo del administrador del plan *</label>
+                        <input
+                          type="email"
+                          className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                          value={form.correoAdministrador}
+                          onChange={(e) => setForm((f) => ({ ...f, correoAdministrador: e.target.value }))}
+                          placeholder="admin@empresa.com"
+                          required
+                        />
+                        <p className="mt-1 text-xs text-muted-foreground">
+                          Recibirá la licencia firmada y los avisos del plan.
+                        </p>
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium">Rubro del negocio</label>
+                        <select
+                          className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                          value={form.rubroCodigo}
+                          onChange={(e) => setForm((f) => ({ ...f, rubroCodigo: e.target.value }))}
+                        >
+                          <option value="">Seleccione (opcional)</option>
+                          {rubros.map((r) => (
+                            <option key={r.codigo} value={r.codigo}>
+                              {r.nombre}
+                            </option>
+                          ))}
+                        </select>
                       </div>
                       <div>
                         <label className="text-sm font-medium">Número de tarjeta</label>

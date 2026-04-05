@@ -5,6 +5,15 @@ export interface SectorResponse {
   nombreSector: string;
   telefono: string | null;
   direccion: string | null;
+  videoPromocionalUrl: string | null;
+}
+
+export interface SectorPlataformaResponse {
+  id: number;
+  nombreSector: string;
+  telefono: string | null;
+  direccion: string | null;
+  videoPromocionalUrl: string | null;
 }
 
 export interface PageResponse<T> {
@@ -19,6 +28,7 @@ export interface SectorRequest {
   nombreSector: string;
   telefono?: string | null;
   direccion?: string | null;
+  videoPromocionalUrl?: string | null;
 }
 
 const BASE = "/api/sectores";
@@ -38,4 +48,8 @@ export const sectoresApi = {
 
   eliminar: (id: number) =>
     api.delete(`${BASE}/${id}`),
+
+  /** Tarjetas de sede (superusuario: todas; resto: su sede). */
+  plataforma: () =>
+    api.get<SectorPlataformaResponse[]>(`${BASE}/plataforma`).then((r) => r.data),
 };

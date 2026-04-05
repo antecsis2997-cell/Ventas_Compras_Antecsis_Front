@@ -21,6 +21,9 @@ interface SuscripcionRow {
   fechaCaducidad: string;
   paquete: string | null;
   correoReceptor: string | null;
+  correoAdmin: string | null;
+  rubroNombre: string | null;
+  licenciaActivada: boolean | null;
   fechaUltimaAlerta: string | null;
   textoAlerta: string | null;
 }
@@ -28,6 +31,12 @@ interface SuscripcionRow {
 interface SectorRow {
   id: number;
   nombreSector: string;
+}
+
+interface RubroRow {
+  id: number;
+  codigo: string;
+  nombre: string;
 }
 
 const emptyForm = {
@@ -60,6 +69,8 @@ export default function Suscripciones() {
   const [formError, setFormError] = useState("");
   const [deleteError, setDeleteError] = useState("");
   const [estadoFilter, setEstadoFilter] = useState<string>("");
+  const [rubroFilter, setRubroFilter] = useState<string>("");
+  const [rubros, setRubros] = useState<RubroRow[]>([]);
   const [alertSending, setAlertSending] = useState<number | null>(null);
 
   const loadSectores = useCallback(async () => {
@@ -72,11 +83,21 @@ export default function Suscripciones() {
     }
   }, []);
 
+  const loadRubros = useCallback(async () => {
+    try {
+      const res = await api.get<RubroRow[]>("/api/rubros-comerciales/admin");
+      setRubros(res.data ?? []);
+    } catch {
+      setRubros([]);
+    }
+  }, []);
+
   const loadItems = useCallback(async (pageNum: number = 0) => {
     setLoading(true);
     try {
       const params: Record<string, string | number> = { page: pageNum, size: 10 };
       if (estadoFilter) params.estado = estadoFilter;
+      if (rubroFilter) params.rubroId = Number(rubroFilter);
       const res = await api.get("/api/suscripciones", { params });
       const data = res.data;
       setItems(data.content ?? []);
@@ -87,11 +108,12 @@ export default function Suscripciones() {
     } finally {
       setLoading(false);
     }
-  }, [estadoFilter]);
+  }, [estadoFilter, rubroFilter]);
 
   useEffect(() => {
     loadSectores();
-  }, [loadSectores]);
+    loadRubros();
+  }, [loadSectores, loadRubros]);
 
   useEffect(() => {
     loadItems(0);
@@ -207,7 +229,7 @@ export default function Suscripciones() {
       <div className="page-header">
         <h1 className="page-title">Administrador de Suscripción</h1>
         <p className="page-subtitle">
-          Gestión de licencias por punto/sucursal. Alertas por correo cuando la suscripción vence.
+          Cuentas por sucursal, rubro comercial, correo admin y activación de licencia. Alertas por correo al vencer.
         </p>
       </div>
 
@@ -231,6 +253,18 @@ export default function Suscripciones() {
                 </option>
               ))}
             </select>
+            <select
+              className="rounded-md border border-input bg-background px-3 py-2 text-sm min-w-[200px]"
+              value={rubroFilter}
+              onChange={(e) => setRubroFilter(e.target.value)}
+            >
+              <option value="">Todos los rubros</option>
+              {rubros.map((r) => (
+                <option key={r.id} value={String(r.id)}>
+                  {r.nombre}
+                </option>
+              ))}
+            </select>
           </div>
           <Button onClick={openCreate}>
             <Plus className="mr-2 h-4 w-4" />
@@ -243,13 +277,16 @@ export default function Suscripciones() {
         ) : (
           <>
             <div className="rounded-md border border-border overflow-x-auto">
-              <table className="w-full text-sm min-w-[900px]">
+              <table className="w-full text-sm min-w-[1100px]">
                 <thead className="bg-muted/50">
                   <tr>
                     <th className="text-left p-3 font-medium">Item</th>
                     <th className="text-left p-3 font-medium">Cliente</th>
                     <th className="text-left p-3 font-medium">RUC</th>
                     <th className="text-left p-3 font-medium">Sucursal</th>
+                    <th className="text-left p-3 font-medium">Rubro</th>
+                    <th className="text-left p-3 font-medium">Correo admin</th>
+                    <th className="text-left p-3 font-medium">Licencia</th>
                     <th className="text-left p-3 font-medium">Descripción</th>
                     <th className="text-left p-3 font-medium">Estado</th>
                     <th className="text-left p-3 font-medium">F. Caducidad</th>
@@ -261,7 +298,7 @@ export default function Suscripciones() {
                 <tbody>
                   {items.length === 0 ? (
                     <tr>
-                      <td colSpan={10} className="p-6 text-center text-muted-foreground">
+                      <td colSpan={13} className="p-6 text-center text-muted-foreground">
                         No hay suscripciones. Cree una con &quot;Nueva suscripción&quot;.
                       </td>
                     </tr>
@@ -275,6 +312,17 @@ export default function Suscripciones() {
                         <td className="p-3 font-medium">{s.nombreCliente}</td>
                         <td className="p-3">{s.ruc || "—"}</td>
                         <td className="p-3">{s.sucursalNombre || "—"}</td>
+                        <td className="p-3">{s.rubroNombre || "—"}</td>
+                        <td className="p-3 max-w-[140px] truncate text-xs" title={s.correoAdmin ?? ""}>
+                          {s.correoAdmin || "—"}
+                        </td>
+                        <td className="p-3">
+                          {s.licenciaActivada ? (
+                            <Badge variant="default" className="bg-green-600 text-[10px]">Activa</Badge>
+                          ) : (
+                            <Badge variant="outline" className="text-[10px]">Pendiente</Badge>
+                          )}
+                        </td>
                         <td className="p-3 max-w-[180px] truncate" title={s.descripcion ?? ""}>
                           {s.descripcion || "—"}
                         </td>

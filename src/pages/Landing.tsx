@@ -7,9 +7,9 @@ export default function Landing() {
   const navigate = useNavigate();
   const location = useLocation();
   if (getAuthToken()) {
-    return <Navigate to="/dashboard" replace />;
+    return <Navigate to="/plataforma-sectores" replace />;
   }
-  const from = (location.state as { from?: { pathname?: string } } | null)?.from?.pathname ?? "/dashboard";
+  const from = (location.state as { from?: { pathname?: string } } | null)?.from?.pathname ?? "/plataforma-sectores";
 
   return (
     <div className="min-h-screen flex bg-muted/20">
