@@ -60,7 +60,7 @@ export default function Solicitudes() {
   const [successMsg, setSuccessMsg] = useState("");
   const [remitenteSuggestions, setRemitenteSuggestions] = useState<{ correo: string; nombre: string }[]>([]);
   const remitenteTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const canApprove = (currentUser?.rolNombre === "SUPERUSUARIO" || currentUser?.rolNombre === "ADMIN" || currentUser?.rolNombre === "LOGISTICA");
+  const canApprove = (currentUser?.rolNombre === "SUPERADMIN" || currentUser?.rolNombre === "SUPERUSUARIO" || currentUser?.rolNombre === "ADMIN" || currentUser?.rolNombre === "LOGISTICA");
 
   const loadSolicitudes = useCallback(async (pageNum: number = 0) => {
     setLoading(true);

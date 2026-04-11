@@ -8,6 +8,8 @@ export interface MeResponse {
   sedeId: number | null;
   sedeNombre: string | null;
   modulos: string[];
+  /** Solo rol SUPERUSUARIO (cliente multi-bodega) */
+  sectoresGestionadosIds?: number[] | null;
 }
 
 export interface LoginResponse {
@@ -26,4 +28,8 @@ export const authApi = {
 
   refresh: (refreshToken: string) =>
     api.post<LoginResponse>(`${BASE}/refresh`, { refreshToken }).then((r) => r.data),
+
+  /** Solo Superusuario cliente: cambia bodega activa para operar (ventas, etc.). */
+  cambiarSedeActiva: (sectorId: number) =>
+    api.put<MeResponse>("/api/mi-cuenta/sede-activa", { sectorId }).then((r) => r.data),
 };

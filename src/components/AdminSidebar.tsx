@@ -36,9 +36,9 @@ interface SidebarItem {
   rolesPermitidos?: string[];
 }
 
-function buildMenuItems(esSuperusuario: boolean): SidebarItem[] {
+function buildMenuItems(esSuperadminPlataforma: boolean): SidebarItem[] {
   const dashboardChildren = [
-    ...(!esSuperusuario ? [{ title: "Plataforma sectores", url: "/plataforma-sectores" }] : []),
+    ...(!esSuperadminPlataforma ? [{ title: "Plataforma sectores", url: "/plataforma-sectores" }] : []),
     { title: "Inicio", url: "/dashboard" },
     { title: "Vista Pantalla 1", url: "/vista-pantalla-1" },
     { title: "Vista Pantalla 2", url: "/vista-pantalla-2" },
@@ -103,14 +103,14 @@ function buildMenuItems(esSuperusuario: boolean): SidebarItem[] {
   },
   // Administración
   { title: "Usuarios", url: "/usuarios", icon: Users, moduloCodigo: "USUARIOS" },
-  { title: "Solicitudes de recuperación", url: "/solicitudes-recuperacion", icon: KeyRound, rolesPermitidos: ["SUPERUSUARIO", "ADMIN", "SOPORTE"] },
+  { title: "Solicitudes de recuperación", url: "/solicitudes-recuperacion", icon: KeyRound, rolesPermitidos: ["SUPERADMIN", "SUPERUSUARIO", "ADMIN", "SOPORTE"] },
   { title: "Sectores", url: "/sectores", icon: Building2, requiresSuperadmin: true },
   { title: "Suscripciones", url: "/suscripciones", icon: FileCheck, requiresSuperadmin: true },
   { title: "Rubros comerciales", url: "/admin/rubros-comerciales", icon: Tags, requiresSuperadmin: true },
-  { title: "Config. Fiscal SUNAT", url: "/configuracion-fiscal", icon: Building2, rolesPermitidos: ["SUPERUSUARIO", "ADMIN"] },
+  { title: "Config. Fiscal SUNAT", url: "/configuracion-fiscal", icon: Building2, rolesPermitidos: ["SUPERADMIN", "SUPERUSUARIO", "ADMIN"] },
   ];
 
-  if (esSuperusuario) {
+  if (esSuperadminPlataforma) {
     const idx = items.findIndex((i) => i.title === "Usuarios");
     items.splice(Math.max(0, idx), 0, {
       title: "Perfil de superusuario",
@@ -163,23 +163,22 @@ interface AdminSidebarProps {
 
 export function AdminSidebar({ collapsed, onToggle }: AdminSidebarProps) {
   const location = useLocation();
-  const { rolNombre, hasModule } = useAuth();
-  const isSuperusuario = rolNombre === "SUPERUSUARIO";
-  const menuItems = useMemo(() => buildMenuItems(isSuperusuario), [isSuperusuario]);
+  const { rolNombre, hasModule, esDueñoPlataforma } = useAuth();
+  const menuItems = useMemo(() => buildMenuItems(esDueñoPlataforma), [esDueñoPlataforma]);
 
   // No desplegar por defecto; abrir solo la sección donde el usuario está ubicado.
   const [openMenus, setOpenMenus] = useState<string[]>(() => {
     const isActive = (url: string) => location.pathname === url;
     const isChildActive = (children?: { url: string }[]) =>
       children?.some((c) => location.pathname === c.url);
-    const initial = buildMenuItems(rolNombre === "SUPERUSUARIO");
+    const initial = buildMenuItems(esDueñoPlataforma);
     return initial
       .filter((item) => item.children && (isActive(item.url) || isChildActive(item.children)))
       .map((item) => item.title);
   });
 
   const visibleMenuItems = menuItems.filter((item) => {
-    if (item.requiresSuperadmin) return isSuperusuario;
+    if (item.requiresSuperadmin) return esDueñoPlataforma;
     if (item.rolesPermitidos) return rolNombre != null && item.rolesPermitidos.includes(rolNombre);
     if (item.moduloCodigo) return hasModule(item.moduloCodigo);
     return true;

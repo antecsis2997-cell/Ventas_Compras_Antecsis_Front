@@ -53,24 +53,24 @@ function ModuleRoute({ modulo, children }: { modulo: string; children: React.Rea
 }
 
 function SectoresRoute() {
-  const { rolNombre } = useAuth();
-  if (rolNombre !== "SUPERUSUARIO") {
+  const { esDueñoPlataforma } = useAuth();
+  if (!esDueñoPlataforma) {
     return <Navigate to="/dashboard" replace />;
   }
   return <Sectores />;
 }
 
 function SuscripcionesRoute() {
-  const { rolNombre } = useAuth();
-  if (rolNombre !== "SUPERUSUARIO") {
+  const { esDueñoPlataforma } = useAuth();
+  if (!esDueñoPlataforma) {
     return <Navigate to="/dashboard" replace />;
   }
   return <Suscripciones />;
 }
 
 function RubrosComercialesRoute() {
-  const { rolNombre } = useAuth();
-  if (rolNombre !== "SUPERUSUARIO") {
+  const { esDueñoPlataforma } = useAuth();
+  if (!esDueñoPlataforma) {
     return <Navigate to="/dashboard" replace />;
   }
   return <RubrosComercialesAdmin />;
@@ -78,7 +78,7 @@ function RubrosComercialesRoute() {
 
 function SolicitudesRecuperacionRoute() {
   const { rolNombre } = useAuth();
-  if (rolNombre !== "SUPERUSUARIO" && rolNombre !== "ADMIN" && rolNombre !== "SOPORTE") {
+  if (rolNombre !== "SUPERADMIN" && rolNombre !== "SUPERUSUARIO" && rolNombre !== "ADMIN" && rolNombre !== "SOPORTE") {
     return <Navigate to="/dashboard" replace />;
   }
   return <SolicitudesRecuperacion />;

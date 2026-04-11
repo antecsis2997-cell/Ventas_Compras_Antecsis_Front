@@ -21,7 +21,7 @@ function youtubeEmbedUrl(url: string): string | null {
 }
 
 export default function PlataformaSectores() {
-  const { rolNombre } = useAuth();
+  const { rolNombre, esDueñoPlataforma } = useAuth();
   const [items, setItems] = useState<SectorPlataformaResponse[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -48,9 +48,11 @@ export default function PlataformaSectores() {
       <div className="page-header">
         <h1 className="page-title">Plataforma principal · Sectores</h1>
         <p className="page-subtitle">
-          {rolNombre === "SUPERUSUARIO"
-            ? "Vista de todas las sedes suscritas al sistema. Cada tarjeta representa un punto de operación (Market / sucursal)."
-            : "Su sede asignada. El video promocional es configurado por el superusuario en Sectores / Sedes."}
+          {esDueñoPlataforma
+            ? "Vista de todas las sedes del sistema. Cada tarjeta representa un punto de operación (Market / sucursal)."
+            : rolNombre === "SUPERUSUARIO"
+              ? "Sus bodegas licenciadas. Use Mi cuenta para cambiar la sede activa u operar en cada una."
+              : "Su sede asignada. El video promocional lo configura el administrador de plataforma en Sectores / Sedes."}
         </p>
       </div>
 
@@ -132,7 +134,7 @@ export default function PlataformaSectores() {
                         Ir al panel
                       </Link>
                     </Button>
-                    {rolNombre === "SUPERUSUARIO" && (
+                    {esDueñoPlataforma && (
                       <Button variant="outline" size="sm" asChild>
                         <Link to="/sectores">Gestionar sedes</Link>
                       </Button>

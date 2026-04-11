@@ -65,8 +65,7 @@ const ambienteBadge = (ambiente: string) => {
 };
 
 export default function ConfiguracionFiscal() {
-  const { rolNombre, sedeId, sedeNombre } = useAuth();
-  const esSuperusuario = rolNombre === "SUPERUSUARIO";
+  const { sedeId, sedeNombre, esDueñoPlataforma } = useAuth();
 
   const [configs, setConfigs] = useState<ConfigFiscal[]>([]);
   const [sectores, setSectores] = useState<Sector[]>([]);
@@ -86,7 +85,7 @@ export default function ConfiguracionFiscal() {
       setConfigs(configRes.data ?? []);
 
       // Solo el SUPERUSUARIO necesita ver todos los sectores para detectar bodegas sin configurar
-      if (esSuperusuario) {
+      if (esDueñoPlataforma) {
         const sectorRes = await api.get("/api/sectores");
         setSectores(sectorRes.data?.content ?? sectorRes.data ?? []);
       }
@@ -95,7 +94,7 @@ export default function ConfiguracionFiscal() {
     } finally {
       setLoading(false);
     }
-  }, [esSuperusuario]);
+  }, [esDueñoPlataforma]);
 
   useEffect(() => { cargar(); }, [cargar]);
 
@@ -166,7 +165,7 @@ export default function ConfiguracionFiscal() {
   // ───────────────────────────────────────────────────────────────────────────
   // Vista ADMIN — solo su propia bodega
   // ───────────────────────────────────────────────────────────────────────────
-  if (!esSuperusuario) {
+  if (!esDueñoPlataforma) {
     const miConfig = configs.find((c) => c.sectorId === sedeId) ?? null;
     const sinSede = !sedeId;
 

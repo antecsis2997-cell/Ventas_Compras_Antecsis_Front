@@ -41,7 +41,7 @@ export function NotificationBell() {
   const lastCountRef = useRef(-1); // -1 = primera carga, no reproducir sonido
 
   const canSeeNotifications =
-    rolNombre === "SUPERUSUARIO" || rolNombre === "ADMIN" || rolNombre === "SOPORTE";
+    rolNombre === "SUPERADMIN" || rolNombre === "SUPERUSUARIO" || rolNombre === "ADMIN" || rolNombre === "SOPORTE";
 
   const fetchSolicitudes = useCallback(async () => {
     if (!canSeeNotifications) return;

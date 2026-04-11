@@ -83,7 +83,12 @@ const AlertDialogCancel = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <AlertDialogPrimitive.Cancel
     ref={ref}
-    className={cn(buttonVariants({ variant: "outline" }), "mt-2 sm:mt-0", className)}
+    className={cn(
+      buttonVariants({ variant: "outline" }),
+      // El contenido del alert es oscuro con text-white; outline usa bg-background (claro) y hereda texto claro → ilegible.
+      "mt-2 sm:mt-0 border-white/35 bg-white/10 text-white shadow-none hover:bg-white/20 hover:text-white focus-visible:ring-white/40",
+      className,
+    )}
     {...props}
   />
 ));

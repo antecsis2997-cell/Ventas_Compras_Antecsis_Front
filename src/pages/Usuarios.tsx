@@ -34,12 +34,15 @@ const ROLES_ADMIN = [
   { value: "SOPORTE", label: "Soporte" },
 ];
 
-const ROLES_SUPERUSUARIO = [
-  { value: "ADMIN", label: "Administrador" },
+const ROLES_SUPERADMIN = [
+  { value: "SUPERUSUARIO", label: "Superusuario (varias bodegas)" },
+  { value: "ADMIN", label: "Administrador de bodega" },
   ...ROLES_ADMIN,
 ];
 
 const ROL_BADGE: Record<string, string> = {
+  SUPERADMIN:     "bg-rose-500/15 text-rose-300 border-rose-500/30",
+  SUPERUSUARIO:   "bg-violet-500/15 text-violet-300 border-violet-500/30",
   ADMIN:          "bg-blue-500/15 text-blue-400 border-blue-500/30",
   CAJERO:         "bg-green-500/15 text-green-400 border-green-500/30",
   ALMACENERO:     "bg-orange-500/15 text-orange-400 border-orange-500/30",
@@ -53,6 +56,8 @@ const emptyForm = {
   username: "", password: "", rol: "CAJERO",
   nombre: "", apellido: "", correo: "", fechaNacimiento: "",
   sedeId: "", sedeNombre: "", activo: true,
+  /** Solo creación rol SUPERUSUARIO por SUPERADMIN */
+  sectoresGestionadosIds: [] as number[],
 };
 
 interface UsuarioRow {
@@ -68,6 +73,7 @@ interface UsuarioRow {
   rolNombre: string | null;
   activo: boolean | null;
   puedeRecuperarContrasena?: boolean | null;
+  sectoresGestionadosIds?: number[] | null;
 }
 
 interface ModuloPermiso {
@@ -76,8 +82,8 @@ interface ModuloPermiso {
 }
 
 export default function Usuarios() {
-  const { rolNombre: myRol, username: myUsername, sedeId: mySedeId, sedeNombre: mySedeNombre } = useAuth();
-  const esSuperusuario = myRol === "SUPERUSUARIO";
+  const { rolNombre: myRol, username: myUsername, sedeId: mySedeId, sedeNombre: mySedeNombre, esDueñoPlataforma } = useAuth();
+  const esSuperusuarioCliente = myRol === "SUPERUSUARIO" && !esDueñoPlataforma;
 
   const [usuarios, setUsuarios] = useState<UsuarioRow[]>([]);
   const [page, setPage] = useState(0);
@@ -113,18 +119,19 @@ export default function Usuarios() {
   useEffect(() => { loadUsuarios(0); }, [loadUsuarios]);
 
   useEffect(() => {
-    if (!esSuperusuario) return;
+    if (!esDueñoPlataforma && !esSuperusuarioCliente) return;
     api.get("/api/sectores", { params: { size: 100 } })
       .then((r) => setSectores(r.data?.content ?? r.data ?? []))
       .catch(() => {});
-  }, [esSuperusuario]);
+  }, [esDueñoPlataforma, esSuperusuarioCliente]);
 
   // ── Helpers ──────────────────────────────────────────────────────────────
 
   const openCreate = () => {
     setEditingId(null);
     const base = { ...emptyForm };
-    if (!esSuperusuario && mySedeId) base.sedeId = String(mySedeId);
+    if (!esDueñoPlataforma && mySedeId) base.sedeId = String(mySedeId);
+    base.sectoresGestionadosIds = [];
     setForm(base);
     setFormError("");
     setDialogOpen(true);
@@ -139,6 +146,7 @@ export default function Usuarios() {
       correo: u.correo ?? "", fechaNacimiento: u.fechaNacimiento ?? "",
       sedeId: u.sedeId != null ? String(u.sedeId) : "",
       sedeNombre: u.sedeNombre ?? "", activo: u.activo ?? true,
+      sectoresGestionadosIds: u.sectoresGestionadosIds ?? [],
     });
     setFormError("");
     setDialogOpen(true);
@@ -186,6 +194,9 @@ export default function Usuarios() {
           sedeId: form.sedeId ? Number(form.sedeId) : null,
           activo: form.activo,
           password: form.password.trim() || null,
+          sectoresGestionadosIds: form.rol === "SUPERUSUARIO" && form.sectoresGestionadosIds.length > 0
+            ? form.sectoresGestionadosIds
+            : undefined,
         });
       } else {
         if (!form.username.trim() || !form.password.trim() || !form.rol.trim()) {
@@ -204,7 +215,15 @@ export default function Usuarios() {
           setSaving(false);
           return;
         }
-        await api.post("/api/usuarios", {
+        if (form.rol === "SUPERUSUARIO") {
+          const sid = form.sedeId ? Number(form.sedeId) : NaN;
+          if (!form.sectoresGestionadosIds.length || Number.isNaN(sid) || !form.sectoresGestionadosIds.includes(sid)) {
+            setFormError("Marque las bodegas licenciadas y elija una bodega activa incluida en esa lista.");
+            setSaving(false);
+            return;
+          }
+        }
+        const body: Record<string, unknown> = {
           username: form.username.trim(),
           password: form.password.trim(),
           rol: form.rol.trim(),
@@ -213,7 +232,11 @@ export default function Usuarios() {
           correo: form.correo.trim() || null,
           fechaNacimiento: form.fechaNacimiento || null,
           sedeId: form.sedeId ? Number(form.sedeId) : null,
-        });
+        };
+        if (form.rol === "SUPERUSUARIO") {
+          body.sectoresGestionadosIds = form.sectoresGestionadosIds;
+        }
+        await api.post("/api/usuarios", body);
       }
       setDialogOpen(false);
       loadUsuarios(page);
@@ -263,13 +286,13 @@ export default function Usuarios() {
 
   // ── VISTA SUPERUSUARIO: solo ve ADMINs (uno por bodega) ──────────────────
 
-  if (esSuperusuario) {
+  if (esDueñoPlataforma) {
     return (
       <>
         <div className="page-header">
           <div>
             <h1 className="page-title flex items-center gap-2"><Building2 className="h-5 w-5 text-primary" />Administradores de Bodegas</h1>
-            <p className="page-subtitle">Gestiona los administradores de cada bodega — activa, desactiva o edita sus cuentas.</p>
+            <p className="page-subtitle">Administradores de bodega y superusuarios multi-bodega — activa, desactiva o edita sus cuentas.</p>
           </div>
           <Button onClick={openCreate}><Plus className="mr-2 h-4 w-4" />Nuevo administrador</Button>
         </div>
@@ -373,6 +396,16 @@ export default function Usuarios() {
                                   <p className="text-xs text-muted-foreground mb-0.5">Bodega (ID)</p>
                                   <p>{u.sedeNombre} <span className="text-muted-foreground text-xs">#{u.sedeId}</span></p>
                                 </div>
+                                {(u.sectoresGestionadosIds?.length ?? 0) > 0 && (
+                                  <div className="col-span-3 sm:col-span-4">
+                                    <p className="text-xs text-muted-foreground mb-0.5">Bodegas licenciadas</p>
+                                    <p className="text-foreground">
+                                      {u.sectoresGestionadosIds
+                                        ?.map((id) => sectores.find((s) => s.id === id)?.nombreSector ?? `#${id}`)
+                                        .join(", ")}
+                                    </p>
+                                  </div>
+                                )}
                               </div>
                             </td>
                           </tr>
@@ -398,8 +431,8 @@ export default function Usuarios() {
           open={dialogOpen} onOpenChange={setDialogOpen}
           editingId={editingId} form={form} setForm={setForm}
           formError={formError} saving={saving} onSubmit={handleSubmit}
-          sectores={sectores} esSuperusuario={true} mySedeId={mySedeId} mySedeNombre={mySedeNombre}
-          roles={ROLES_SUPERUSUARIO}
+          sectores={sectores} esSuperadminPlataforma={true} esSuperusuarioCliente={false} mySedeId={mySedeId} mySedeNombre={mySedeNombre}
+          roles={ROLES_SUPERADMIN}
         />
         <ConfirmDesactivar confirmId={confirmDesactivarId} setConfirmId={setConfirmDesactivarId}
           onConfirm={() => { if (confirmDesactivarId != null) { handleToggleActivo(confirmDesactivarId, false); setConfirmDesactivarId(null); } }} />
@@ -417,9 +450,13 @@ export default function Usuarios() {
     <>
       <div className="page-header">
         <div>
-          <h1 className="page-title flex items-center gap-2"><Users className="h-5 w-5 text-primary" />Usuarios de mi bodega</h1>
+          <h1 className="page-title flex items-center gap-2"><Users className="h-5 w-5 text-primary" />
+            {esSuperusuarioCliente ? "Usuarios de mis bodegas" : "Usuarios de mi bodega"}
+          </h1>
           <p className="page-subtitle">
-            Gestiona el equipo de <strong>{mySedeNombre ?? "tu bodega"}</strong> — activa, desactiva, edita permisos y datos de cada usuario.
+            {esSuperusuarioCliente
+              ? "Gestiona usuarios en las bodegas de tu licencia."
+              : <>Gestiona el equipo de <strong>{mySedeNombre ?? "tu bodega"}</strong> — activa, desactiva, edita permisos y datos de cada usuario.</>}
           </p>
         </div>
         <Button onClick={openCreate}><Plus className="mr-2 h-4 w-4" />Nuevo usuario</Button>
@@ -552,8 +589,8 @@ export default function Usuarios() {
         open={dialogOpen} onOpenChange={setDialogOpen}
         editingId={editingId} form={form} setForm={setForm}
         formError={formError} saving={saving} onSubmit={handleSubmit}
-        sectores={sectores} esSuperusuario={false} mySedeId={mySedeId} mySedeNombre={mySedeNombre}
-        roles={ROLES_ADMIN}
+        sectores={sectores} esSuperadminPlataforma={false} esSuperusuarioCliente={esSuperusuarioCliente} mySedeId={mySedeId} mySedeNombre={mySedeNombre}
+        roles={esSuperusuarioCliente ? [{ value: "ADMIN", label: "Administrador de bodega" }, ...ROLES_ADMIN] : ROLES_ADMIN}
       />
       <ConfirmDesactivar confirmId={confirmDesactivarId} setConfirmId={setConfirmDesactivarId}
         onConfirm={() => { if (confirmDesactivarId != null) { handleToggleActivo(confirmDesactivarId, false); setConfirmDesactivarId(null); } }} />
@@ -569,22 +606,28 @@ export default function Usuarios() {
 // Sub-componentes reutilizables
 // ─────────────────────────────────────────────────────────────────────────────
 
-function FormularioDialog({ open, onOpenChange, editingId, form, setForm, formError, saving, onSubmit, sectores, esSuperusuario, mySedeId, mySedeNombre, roles }: {
+function FormularioDialog({ open, onOpenChange, editingId, form, setForm, formError, saving, onSubmit, sectores, esSuperadminPlataforma, esSuperusuarioCliente, mySedeId, mySedeNombre, roles }: {
   open: boolean; onOpenChange: (v: boolean) => void;
   editingId: number | null;
   form: typeof emptyForm; setForm: React.Dispatch<React.SetStateAction<typeof emptyForm>>;
   formError: string; saving: boolean; onSubmit: (e: React.FormEvent) => void;
   sectores: { id: number; nombreSector: string }[];
-  esSuperusuario: boolean; mySedeId: number | null; mySedeNombre: string | null;
+  esSuperadminPlataforma: boolean;
+  esSuperusuarioCliente?: boolean;
+  mySedeId: number | null; mySedeNombre: string | null;
   roles: { value: string; label: string }[];
 }) {
+  const elegirSede = esSuperadminPlataforma || esSuperusuarioCliente;
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
-        <DialogHeader>
-          <DialogTitle>{editingId ? "Editar usuario" : "Nuevo usuario"}</DialogTitle>
-        </DialogHeader>
-        <form onSubmit={onSubmit} className="space-y-4">
+      <DialogContent className="flex max-h-[90dvh] w-[calc(100vw-1.5rem)] max-w-md flex-col gap-0 overflow-hidden p-0 sm:w-full">
+        <div className="shrink-0 border-b border-white/10 px-6 pb-4 pt-6 pr-14">
+          <DialogHeader>
+            <DialogTitle>{editingId ? "Editar usuario" : "Nuevo usuario"}</DialogTitle>
+          </DialogHeader>
+        </div>
+        <form onSubmit={onSubmit} className="flex min-h-0 flex-1 flex-col">
+          <div className="min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain px-6 py-4">
           {!editingId ? (
             <>
               <div className="grid grid-cols-2 gap-4">
@@ -600,7 +643,7 @@ function FormularioDialog({ open, onOpenChange, editingId, form, setForm, formEr
               <div className="space-y-2">
                 <Label>Rol *</Label>
                 <select className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                  value={form.rol} onChange={(e) => setForm((f) => ({ ...f, rol: e.target.value }))}>
+                  value={form.rol} onChange={(e) => setForm((f) => ({ ...f, rol: e.target.value, sectoresGestionadosIds: e.target.value === "SUPERUSUARIO" ? f.sectoresGestionadosIds : [] }))}>
                   {roles.map((r) => <option key={r.value} value={r.value}>{r.label}</option>)}
                 </select>
               </div>
@@ -640,8 +683,8 @@ function FormularioDialog({ open, onOpenChange, editingId, form, setForm, formEr
           <div className="space-y-2"><Label>Fecha de nacimiento</Label>
             <Input type="date" value={form.fechaNacimiento} onChange={(e) => setForm((f) => ({ ...f, fechaNacimiento: e.target.value }))} /></div>
           <div className="space-y-2">
-            <Label>Bodega (Sector) *</Label>
-            {esSuperusuario ? (
+            <Label>Bodega activa (operación) *</Label>
+            {elegirSede ? (
               <select className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
                 value={form.sedeId} onChange={(e) => setForm((f) => ({ ...f, sedeId: e.target.value }))}>
                 <option value="">Seleccionar bodega...</option>
@@ -651,6 +694,30 @@ function FormularioDialog({ open, onOpenChange, editingId, form, setForm, formEr
               <Input value={mySedeNombre ?? ""} disabled className="bg-muted" />
             )}
           </div>
+          {!editingId && esSuperadminPlataforma && form.rol === "SUPERUSUARIO" && (
+            <div className="space-y-2 rounded-md border border-border p-3 bg-muted/20">
+              <Label>Bodegas licenciadas *</Label>
+              <p className="text-xs text-muted-foreground mb-2">Marque al menos una; la &quot;Bodega activa&quot; debe estar incluida.</p>
+              <div className="flex max-h-[min(12rem,35dvh)] flex-col gap-2 overflow-y-auto overscroll-contain">
+                {sectores.map((s) => (
+                  <label key={s.id} className="flex items-center gap-2 text-sm cursor-pointer">
+                    <Checkbox
+                      checked={form.sectoresGestionadosIds.includes(s.id)}
+                      onCheckedChange={(checked) => {
+                        setForm((f) => ({
+                          ...f,
+                          sectoresGestionadosIds: checked
+                            ? [...f.sectoresGestionadosIds, s.id]
+                            : f.sectoresGestionadosIds.filter((id) => id !== s.id),
+                        }));
+                      }}
+                    />
+                    {s.nombreSector}
+                  </label>
+                ))}
+              </div>
+            </div>
+          )}
           {editingId && (
             <div className="flex items-center gap-2">
               <input type="checkbox" id="activo" checked={form.activo}
@@ -658,10 +725,13 @@ function FormularioDialog({ open, onOpenChange, editingId, form, setForm, formEr
               <Label htmlFor="activo">Usuario activo</Label>
             </div>
           )}
-          {formError && <p className="text-sm text-destructive">{formError}</p>}
-          <div className="flex justify-end gap-2">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
-            <Button type="submit" disabled={saving}>{saving ? "Guardando..." : editingId ? "Guardar" : "Crear usuario"}</Button>
+          </div>
+          <div className="shrink-0 space-y-3 border-t border-white/10 bg-gradient-to-br from-[#0b1220] to-[#111827] px-6 py-4">
+            {formError && <p className="text-sm text-destructive">{formError}</p>}
+            <div className="flex justify-end gap-2">
+              <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
+              <Button type="submit" disabled={saving}>{saving ? "Guardando..." : editingId ? "Guardar" : "Crear usuario"}</Button>
+            </div>
           </div>
         </form>
       </DialogContent>

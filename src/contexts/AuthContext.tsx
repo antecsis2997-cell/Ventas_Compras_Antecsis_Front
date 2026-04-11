@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useCallback, useEffect, type ReactNode } from "react";
+import { createContext, useContext, useState, useCallback, useEffect, useMemo, type ReactNode } from "react";
 import { getAuthToken, setAuthToken as persistToken, setRefreshToken as persistRefreshToken, getUsernameFromToken, getRoleFromToken, logout as doLogout } from "@/lib/api";
 import { authApi } from "@/api";
 
@@ -8,7 +8,11 @@ interface AuthContextType {
   rolNombre: string | null;
   sedeId: number | null;
   sedeNombre: string | null;
+  /** Solo rol SUPERUSUARIO (cliente multi-bodega) */
+  sectoresGestionadosIds: number[];
   modulos: Set<string>;
+  /** SUPERADMIN o SUPERUSUARIO de plataforma (sin bodegas gestionadas; compat. BD sin migración) */
+  esDueñoPlataforma: boolean;
   login: (username: string, password: string) => Promise<void>;
   logout: () => void;
   hasModule: (codigo: string) => boolean;
@@ -22,6 +26,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [rolNombre, setRolNombre] = useState<string | null>(null);
   const [sedeId, setSedeId] = useState<number | null>(null);
   const [sedeNombre, setSedeNombre] = useState<string | null>(null);
+  const [sectoresGestionadosIds, setSectoresGestionadosIds] = useState<number[]>([]);
   const [modulos, setModulos] = useState<Set<string>>(new Set());
   const [ready, setReady] = useState(false);
 
@@ -32,12 +37,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setRolNombre(data.rolNombre ?? null);
       setSedeId(data.sedeId ?? null);
       setSedeNombre(data.sedeNombre ?? null);
+      setSectoresGestionadosIds(data.sectoresGestionadosIds ?? []);
       setModulos(new Set(data.modulos ?? []));
     } catch {
       setUsername(getUsernameFromToken());
       setRolNombre(getRoleFromToken());
       setSedeId(null);
       setSedeNombre(null);
+      setSectoresGestionadosIds([]);
       setModulos(new Set());
     }
   }, []);
@@ -50,6 +57,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setReady(true);
     }
   }, [fetchMe]);
+
+  const esDueñoPlataforma = useMemo(
+    () =>
+      rolNombre === "SUPERADMIN" ||
+      (rolNombre === "SUPERUSUARIO" && sectoresGestionadosIds.length === 0),
+    [rolNombre, sectoresGestionadosIds]
+  );
 
   const login = useCallback(async (user: string, password: string) => {
     const data = await authApi.login(user, password);
@@ -64,14 +78,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setRolNombre(null);
     setSedeId(null);
     setSedeNombre(null);
+    setSectoresGestionadosIds([]);
     setModulos(new Set());
   }, []);
 
-  const hasModule = useCallback((codigo: string) => {
-    if (rolNombre === "SUPERUSUARIO") return true;
-    if (modulos.has("*")) return true;
-    return modulos.has(codigo);
-  }, [rolNombre, modulos]);
+  const hasModule = useCallback(
+    (codigo: string) => {
+      if (esDueñoPlataforma) return true;
+      if (modulos.has("*")) return true;
+      return modulos.has(codigo);
+    },
+    [esDueñoPlataforma, modulos]
+  );
 
   const isAuthenticated = !!getAuthToken();
 
@@ -84,7 +102,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, username, rolNombre, sedeId, sedeNombre, modulos, login, logout, hasModule, refreshMe: fetchMe }}>
+    <AuthContext.Provider
+      value={{
+        isAuthenticated,
+        username,
+        rolNombre,
+        sedeId,
+        sedeNombre,
+        sectoresGestionadosIds,
+        modulos,
+        esDueñoPlataforma,
+        login,
+        logout,
+        hasModule,
+        refreshMe: fetchMe,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
