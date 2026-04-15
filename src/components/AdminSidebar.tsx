@@ -1,5 +1,6 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
+import { cn } from "@/lib/utils";
 import { logout } from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
 import {
@@ -159,9 +160,19 @@ function SidebarUser() {
 interface AdminSidebarProps {
   collapsed: boolean;
   onToggle: () => void;
+  /** Drawer móvil (&lt; lg) */
+  mobileOpen: boolean;
+  onMobileClose: () => void;
+  isDesktop: boolean;
 }
 
-export function AdminSidebar({ collapsed, onToggle }: AdminSidebarProps) {
+export function AdminSidebar({
+  collapsed,
+  onToggle,
+  mobileOpen,
+  onMobileClose,
+  isDesktop,
+}: AdminSidebarProps) {
   const location = useLocation();
   const { rolNombre, hasModule, esDueñoPlataforma } = useAuth();
   const menuItems = useMemo(() => buildMenuItems(esDueñoPlataforma), [esDueñoPlataforma]);
@@ -176,6 +187,12 @@ export function AdminSidebar({ collapsed, onToggle }: AdminSidebarProps) {
       .filter((item) => item.children && (isActive(item.url) || isChildActive(item.children)))
       .map((item) => item.title);
   });
+
+  useEffect(() => {
+    onMobileClose();
+  }, [location.pathname, onMobileClose]);
+
+  const showLabels = isDesktop ? !collapsed : true;
 
   const visibleMenuItems = menuItems.filter((item) => {
     if (item.requiresSuperadmin) return esDueñoPlataforma;
@@ -194,32 +211,40 @@ export function AdminSidebar({ collapsed, onToggle }: AdminSidebarProps) {
   const isChildActive = (children?: { url: string }[]) =>
     children?.some((c) => location.pathname === c.url);
 
+  const drawerOpen = isDesktop || mobileOpen;
+
   return (
     <aside
-      className={`fixed left-0 top-0 z-40 h-screen bg-sidebar border-r border-sidebar-border transition-all duration-300 flex flex-col ${
-        collapsed ? "w-[70px]" : "w-[260px]"
-      }`}
+      className={cn(
+        "fixed left-0 top-0 z-50 flex h-screen flex-col border-r border-sidebar-border bg-sidebar transition-transform duration-300 ease-out lg:z-40",
+        "w-[min(100vw-2rem,280px)] sm:w-[260px]",
+        collapsed ? "lg:w-[70px]" : "lg:w-[260px]",
+        drawerOpen ? "translate-x-0 shadow-xl lg:shadow-none" : "-translate-x-full lg:translate-x-0",
+      )}
     >
       {/* Logo */}
-      <div className="flex h-16 items-center justify-between border-b border-sidebar-border px-4">
-        {!collapsed && (
-          <div className="flex items-center gap-2">
-            <img src="/logo-antecsis.png" alt="AnTecsis" className="h-12 w-auto" />
+      <div className="flex h-14 shrink-0 items-center justify-between border-b border-sidebar-border px-3 sm:h-16 sm:px-4">
+        {showLabels ? (
+          <div className="flex min-w-0 items-center gap-2">
+            <img src="/logo-antecsis.png" alt="AnTecsis" className="h-9 w-auto sm:h-12" />
           </div>
+        ) : (
+          <img src="/logo-antecsis.png" alt="AnTecsis" className="mx-auto h-9 w-auto" />
         )}
-        {collapsed && <img src="/logo-antecsis.png" alt="AnTecsis" className="h-9 w-auto mx-auto" />}
         <button
-          onClick={onToggle}
-          className="text-sidebar-foreground hover:text-sidebar-accent-foreground transition-colors p-1 rounded hover:bg-sidebar-accent"
+          type="button"
+          onClick={() => (isDesktop ? onToggle() : onMobileClose())}
+          className="shrink-0 rounded p-1 text-sidebar-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+          aria-label={isDesktop ? (collapsed ? "Expandir menú" : "Contraer menú") : "Cerrar menú"}
         >
           <ChevronLeft
-            className={`h-4 w-4 transition-transform ${collapsed ? "rotate-180" : ""}`}
+            className={cn("h-4 w-4 transition-transform", collapsed && isDesktop ? "rotate-180" : "")}
           />
         </button>
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 overflow-y-auto scrollbar-thin py-4 px-3 space-y-1">
+      <nav className="flex-1 space-y-1 overflow-y-auto overscroll-contain px-2 py-3 scrollbar-thin sm:px-3 sm:py-4">
         {visibleMenuItems.map((item) => {
           const Icon = item.icon;
           const active = isActive(item.url) || isChildActive(item.children);
@@ -237,17 +262,17 @@ export function AdminSidebar({ collapsed, onToggle }: AdminSidebarProps) {
                   }`}
                 >
                   <Icon className="h-5 w-5 shrink-0" />
-                  {!collapsed && (
+                  {showLabels && (
                     <>
-                      <span className="flex-1 text-left">{item.title}</span>
+                      <span className="min-w-0 flex-1 truncate text-left">{item.title}</span>
                       <ChevronDown
-                        className={`h-4 w-4 transition-transform ${isOpen ? "rotate-180" : ""}`}
+                        className={`h-4 w-4 shrink-0 transition-transform ${isOpen ? "rotate-180" : ""}`}
                       />
                     </>
                   )}
                 </button>
-                {!collapsed && isOpen && (
-                  <div className="ml-8 mt-1 space-y-1">
+                {showLabels && isOpen && (
+                  <div className="ml-4 mt-1 space-y-1 sm:ml-8">
                     {item.children.map((child) => (
                       <NavLink
                         key={child.url}
@@ -281,15 +306,15 @@ export function AdminSidebar({ collapsed, onToggle }: AdminSidebarProps) {
               }
             >
               <Icon className="h-5 w-5 shrink-0" />
-              {!collapsed && <span>{item.title}</span>}
+              {showLabels && <span className="truncate">{item.title}</span>}
             </NavLink>
           );
         })}
       </nav>
 
       {/* Footer: user info */}
-      {!collapsed && (
-        <div className="border-t border-sidebar-border p-4">
+      {showLabels && (
+        <div className="shrink-0 border-t border-sidebar-border p-3 sm:p-4">
           <SidebarUser />
         </div>
       )}

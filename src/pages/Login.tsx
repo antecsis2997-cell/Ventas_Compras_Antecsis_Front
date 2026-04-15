@@ -76,65 +76,71 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-muted/30 p-4">
-      <div className="w-full max-w-sm space-y-8 rounded-xl border border-border bg-card p-8 shadow-lg">
-        <div className="flex flex-col items-center">
-          <img src="/logo-antecsis.png" alt="AnTecsis" className="h-36 w-auto" />
-        </div>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {error && (
-            <div className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">
-              {error}
+    <div className="flex min-h-screen flex-col bg-muted/30">
+      <div className="flex flex-1 items-center justify-center p-4">
+        <div className="w-full max-w-sm space-y-8 rounded-xl border border-border bg-card p-8 shadow-lg">
+          <div className="flex flex-col items-center">
+            <img src="/logo-antecsis.png" alt="AnTecsis" className="h-36 w-auto" />
+          </div>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {error && (
+              <div className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">
+                {error}
+              </div>
+            )}
+            <div className="relative">
+              <User className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <input
+                id="username"
+                type="text"
+                placeholder="Usuario"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                autoComplete="username"
+                required
+                className="h-11 w-full rounded-md border border-input bg-background pl-10 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+              />
             </div>
-          )}
-          <div className="relative">
-            <User className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <input
-              id="username"
-              type="text"
-              placeholder="Usuario"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              autoComplete="username"
-              required
-              className="h-11 w-full rounded-md border border-input bg-background pl-10 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-            />
-          </div>
-          <div className="relative">
-            <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <input
-              id="password"
-              type={showPassword ? "text" : "password"}
-              placeholder="Contraseña"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              autoComplete="current-password"
-              required
-              className="h-11 w-full rounded-md border border-input bg-background pl-10 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-            />
-            <button
-              type="button"
-              onClick={() => setShowPassword((v) => !v)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-              tabIndex={-1}
-            >
-              {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-            </button>
-          </div>
-          <Button type="submit" className="w-full h-11" disabled={loading}>
-            {loading ? "Entrando..." : "Iniciar sesión"}
-          </Button>
-          {error && puedeRecuperar && (
-            <button
-              type="button"
-              onClick={() => setShowForgot(true)}
-              className="w-full text-center text-sm text-muted-foreground hover:text-foreground underline"
-            >
-              Recuperar contraseña
-            </button>
-          )}
-        </form>
+            <div className="relative">
+              <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <input
+                id="password"
+                type={showPassword ? "text" : "password"}
+                placeholder="Contraseña"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                autoComplete="current-password"
+                required
+                className="h-11 w-full rounded-md border border-input bg-background pl-10 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword((v) => !v)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                tabIndex={-1}
+              >
+                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
+            </div>
+            <Button type="submit" className="w-full h-11" disabled={loading}>
+              {loading ? "Entrando..." : "Iniciar sesión"}
+            </Button>
+            {error && puedeRecuperar && (
+              <button
+                type="button"
+                onClick={() => setShowForgot(true)}
+                className="w-full text-center text-sm text-muted-foreground hover:text-foreground underline"
+              >
+                Recuperar contraseña
+              </button>
+            )}
+          </form>
+        </div>
       </div>
+
+      <p className="shrink-0 py-4 text-center text-[11px] text-muted-foreground">
+        © {new Date().getFullYear()} ANTECSIS · Todos los derechos reservados.
+      </p>
 
       <Dialog open={showForgot} onOpenChange={(open) => !open && closeForgotModal()}>
         <DialogContent className="sm:max-w-md">

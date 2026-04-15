@@ -54,6 +54,20 @@ export default function PlataformaSectores() {
               ? "Sus bodegas licenciadas. Use Mi cuenta para cambiar la sede activa u operar en cada una."
               : "Su sede asignada. El video promocional lo configura el administrador de plataforma en Sectores / Sedes."}
         </p>
+        {esDueñoPlataforma && (
+          <p className="mt-2 text-sm text-muted-foreground">
+            Para encender o apagar una bodega (activa / inactiva), use el menú{" "}
+            <Link to="/sectores" className="text-primary font-medium hover:underline">
+              Sectores / Sedes
+            </Link>
+            : columna <span className="text-foreground/90">Activa</span> (interruptor). Aquí solo se muestran sedes activas.
+          </p>
+        )}
+        {!esDueñoPlataforma && rolNombre === "SUPERUSUARIO" && (
+          <p className="mt-2 text-sm text-muted-foreground">
+            Activar o desactivar bodegas a nivel plataforma solo lo puede el administrador del sistema en Sectores / Sedes.
+          </p>
+        )}
       </div>
 
       {loading ? (

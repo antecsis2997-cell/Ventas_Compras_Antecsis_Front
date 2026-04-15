@@ -1,3 +1,4 @@
+/** Copyright (c) 2026 ANTECSIS — Todos los derechos reservados. */
 import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import "./index.css";

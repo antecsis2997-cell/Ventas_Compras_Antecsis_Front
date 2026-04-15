@@ -6,6 +6,8 @@ export interface SectorResponse {
   telefono: string | null;
   direccion: string | null;
   videoPromocionalUrl: string | null;
+  /** Si false, la bodega no aparece en plataforma ni en listados de clientes. */
+  activo: boolean;
 }
 
 export interface SectorPlataformaResponse {
@@ -14,6 +16,7 @@ export interface SectorPlataformaResponse {
   telefono: string | null;
   direccion: string | null;
   videoPromocionalUrl: string | null;
+  activo: boolean;
 }
 
 export interface PageResponse<T> {
@@ -45,6 +48,10 @@ export const sectoresApi = {
 
   actualizar: (id: number, body: SectorRequest) =>
     api.put<SectorResponse>(`${BASE}/${id}`, body).then((r) => r.data),
+
+  /** Solo SUPERADMIN. Activa o desactiva la bodega (plataforma y operación). */
+  cambiarActivo: (id: number, activo: boolean) =>
+    api.patch<SectorResponse>(`${BASE}/${id}/activo`, { activo }).then((r) => r.data),
 
   eliminar: (id: number) =>
     api.delete(`${BASE}/${id}`),

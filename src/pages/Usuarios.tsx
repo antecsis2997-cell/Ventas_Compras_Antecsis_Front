@@ -289,7 +289,7 @@ export default function Usuarios() {
   if (esDueñoPlataforma) {
     return (
       <>
-        <div className="page-header">
+        <div className="page-header flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div>
             <h1 className="page-title flex items-center gap-2"><Building2 className="h-5 w-5 text-primary" />Administradores de Bodegas</h1>
             <p className="page-subtitle">Administradores de bodega y superusuarios multi-bodega — activa, desactiva o edita sus cuentas.</p>
@@ -448,7 +448,7 @@ export default function Usuarios() {
 
   return (
     <>
-      <div className="page-header">
+      <div className="page-header flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <h1 className="page-title flex items-center gap-2"><Users className="h-5 w-5 text-primary" />
             {esSuperusuarioCliente ? "Usuarios de mis bodegas" : "Usuarios de mi bodega"}

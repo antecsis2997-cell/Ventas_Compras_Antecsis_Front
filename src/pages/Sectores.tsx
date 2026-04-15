@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback } from "react";
 import { Plus, Edit, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
+import { toast } from "sonner";
 import {
   Dialog,
   DialogContent,
@@ -16,6 +18,7 @@ interface SectorRow {
   telefono: string | null;
   direccion: string | null;
   videoPromocionalUrl: string | null;
+  activo: boolean;
 }
 
 const emptyForm = {
@@ -41,7 +44,12 @@ export default function Sectores() {
     setLoading(true);
     try {
       const data = await sectoresApi.listar({ page: pageNum, size: 10 });
-      setSectores(data.content ?? []);
+      setSectores(
+        (data.content ?? []).map((row) => ({
+          ...row,
+          activo: row.activo ?? true,
+        }))
+      );
       setPage(data.number ?? pageNum);
       setTotalPages(data.totalPages ?? 0);
     } catch {
@@ -104,6 +112,18 @@ export default function Sectores() {
     }
   };
 
+  const handleToggleActivo = async (s: SectorRow, activo: boolean) => {
+    const prev = s.activo;
+    setSectores((list) => list.map((x) => (x.id === s.id ? { ...x, activo } : x)));
+    try {
+      await sectoresApi.cambiarActivo(s.id, activo);
+      toast.success(activo ? "Bodega activada" : "Bodega desactivada");
+    } catch (err: unknown) {
+      setSectores((list) => list.map((x) => (x.id === s.id ? { ...x, activo: prev } : x)));
+      toast.error(getApiErrorMessage(err));
+    }
+  };
+
   const handleDelete = async (id: number) => {
     setDeleteError("");
     if (!confirm("¿Eliminar esta sede/sector?")) return;
@@ -120,7 +140,7 @@ export default function Sectores() {
       <div className="page-header">
         <h1 className="page-title">Sectores / Sedes</h1>
         <p className="page-subtitle">
-          Gestión de sedes: nombre, teléfono, dirección y URL de video promocional (visible en Plataforma sectores). Las series SUNAT se configuran en Configuración Fiscal.
+          Gestión de sedes: nombre, teléfono, dirección y URL de video promocional (visible en Plataforma sectores). La columna Activa permite encender o apagar la bodega; las inactivas no aparecen en la plataforma ni en listados de clientes. Las series SUNAT se configuran en Configuración Fiscal.
         </p>
       </div>
 
@@ -146,6 +166,7 @@ export default function Sectores() {
                 <thead className="bg-muted/50">
                   <tr>
                     <th className="text-left p-3 font-medium">Nombre</th>
+                    <th className="text-center p-3 font-medium w-[100px]">Activa</th>
                     <th className="text-left p-3 font-medium">Teléfono</th>
                     <th className="text-left p-3 font-medium">Dirección</th>
                     <th className="text-left p-3 font-medium">Video</th>
@@ -155,14 +176,28 @@ export default function Sectores() {
                 <tbody>
                   {sectores.length === 0 ? (
                     <tr>
-                      <td colSpan={5} className="p-6 text-center text-muted-foreground">
+                      <td colSpan={6} className="p-6 text-center text-muted-foreground">
                         No hay sectores. Cree uno con &quot;Nueva sede&quot;.
                       </td>
                     </tr>
                   ) : (
                     sectores.map((s) => (
-                      <tr key={s.id} className="border-t border-border">
-                        <td className="p-3">{s.nombreSector}</td>
+                      <tr key={s.id} className={`border-t border-border ${s.activo ? "" : "opacity-60"}`}>
+                        <td className="p-3">
+                          {s.nombreSector}
+                          {!s.activo && (
+                            <span className="ml-2 text-xs text-amber-500/90">(inactiva)</span>
+                          )}
+                        </td>
+                        <td className="p-3 text-center">
+                          <div className="flex justify-center">
+                            <Switch
+                              checked={s.activo}
+                              onCheckedChange={(checked) => handleToggleActivo(s, checked)}
+                              aria-label={s.activo ? "Desactivar bodega" : "Activar bodega"}
+                            />
+                          </div>
+                        </td>
                         <td className="p-3">{s.telefono || "—"}</td>
                         <td className="p-3">{s.direccion || "—"}</td>
                         <td className="p-3 max-w-[140px] truncate text-muted-foreground" title={s.videoPromocionalUrl ?? undefined}>
