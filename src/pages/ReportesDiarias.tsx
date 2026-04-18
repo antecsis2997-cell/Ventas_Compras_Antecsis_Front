@@ -5,6 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Calendar, FileSpreadsheet, FileText } from "lucide-react";
 import { ReporteVentasVisual, type ReporteVentasDTO } from "@/components/reportes/ReporteVentasVisual";
+import { openReportBlobInNewTab } from "@/lib/openReportInNewTab";
+import { toast } from "sonner";
 
 function periodoLargo(fecha: string) {
   const d = new Date(fecha + "T12:00:00");
@@ -42,12 +44,13 @@ export default function ReportesDiarias() {
         params: { fechaInicio: fecha, fechaFin: fecha },
         responseType: "blob",
       });
-      const url = window.URL.createObjectURL(new Blob([res.data]));
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "ventas_" + fecha + (tipo === "excel" ? ".xlsx" : ".pdf");
-      a.click();
-      window.URL.revokeObjectURL(url);
+      if (
+        !openReportBlobInNewTab(res, tipo, {
+          excelFileName: "ventas_" + fecha + ".xlsx",
+        })
+      ) {
+        toast.error("Permita ventanas emergentes para ver el archivo.");
+      }
     } catch {
       // no-op
     } finally {
@@ -92,7 +95,7 @@ export default function ReportesDiarias() {
             </Button>
             <Button variant="outline" className="gap-2 shadow-sm" disabled={descargando !== null} onClick={() => descargar("pdf")}>
               <FileText className="h-4 w-4" />
-              {descargando === "pdf" ? "Descargando…" : "PDF"}
+              {descargando === "pdf" ? "Abriendo…" : "PDF"}
             </Button>
           </>
         }

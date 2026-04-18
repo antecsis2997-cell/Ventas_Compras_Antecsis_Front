@@ -11,6 +11,8 @@ import {
 } from "@/components/ui/select";
 import { FileSpreadsheet, FileText } from "lucide-react";
 import { ReporteVentasVisual, type ReporteVentasDTO } from "@/components/reportes/ReporteVentasVisual";
+import { openReportBlobInNewTab } from "@/lib/openReportInNewTab";
+import { toast } from "sonner";
 
 const MESES = [
   "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
@@ -51,12 +53,18 @@ export default function ReportesMensuales() {
         params: { fechaInicio: first, fechaFin: last },
         responseType: "blob",
       });
-      const url = window.URL.createObjectURL(new Blob([res.data]));
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "ventas_" + year + "_" + String(month).padStart(2, "0") + (tipo === "excel" ? ".xlsx" : ".pdf");
-      a.click();
-      window.URL.revokeObjectURL(url);
+      if (
+        !openReportBlobInNewTab(res, tipo, {
+          excelFileName:
+            "ventas_" +
+            year +
+            "_" +
+            String(month).padStart(2, "0") +
+            ".xlsx",
+        })
+      ) {
+        toast.error("Permita ventanas emergentes para ver el archivo.");
+      }
     } catch {
       // ignore
     } finally {
@@ -120,7 +128,7 @@ export default function ReportesMensuales() {
             </Button>
             <Button variant="outline" className="gap-2 shadow-sm" disabled={descargando !== null} onClick={() => descargar("pdf")}>
               <FileText className="h-4 w-4" />
-              {descargando === "pdf" ? "Descargando…" : "PDF"}
+              {descargando === "pdf" ? "Abriendo…" : "PDF"}
             </Button>
           </>
         }

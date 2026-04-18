@@ -5,6 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { FileSpreadsheet, FileText, FolderOutput, ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
+import { openReportBlobInNewTab } from "@/lib/openReportInNewTab";
+import { toast } from "sonner";
 
 export default function Reportes() {
   const hoy = new Date().toISOString().slice(0, 10);
@@ -19,12 +21,13 @@ export default function Reportes() {
         params: { fechaInicio, fechaFin },
         responseType: "blob",
       });
-      const url = window.URL.createObjectURL(new Blob([res.data]));
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "ventas_" + fechaInicio + "_" + fechaFin + (tipo === "excel" ? ".xlsx" : ".pdf");
-      a.click();
-      window.URL.revokeObjectURL(url);
+      if (
+        !openReportBlobInNewTab(res, tipo, {
+          excelFileName: "ventas_" + fechaInicio + "_" + fechaFin + ".xlsx",
+        })
+      ) {
+        toast.error("Permita ventanas emergentes para ver el archivo.");
+      }
     } catch {
       // no-op
     } finally {
@@ -73,7 +76,9 @@ export default function Reportes() {
               </div>
               <div>
                 <h2 className="text-base font-semibold text-foreground">Exportar por rango</h2>
-                <p className="text-xs text-muted-foreground">Descarga directa sin gráfico (Excel o PDF)</p>
+                <p className="text-xs text-muted-foreground">
+                  Descarga Excel; el PDF se abre en una nueva pestaña para verlo (sin gráfico).
+                </p>
               </div>
             </div>
           </div>
@@ -99,7 +104,7 @@ export default function Reportes() {
               </Button>
               <Button variant="outline" className="gap-2 shadow-sm" disabled={descargando !== null} onClick={() => descargar("pdf")}>
                 <FileText className="h-4 w-4" />
-                {descargando === "pdf" ? "Descargando…" : "Descargar PDF"}
+                {descargando === "pdf" ? "Abriendo…" : "Ver PDF"}
               </Button>
             </div>
           </div>
