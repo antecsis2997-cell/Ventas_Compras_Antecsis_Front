@@ -12,6 +12,7 @@ interface EntregaDetalle {
   clienteNombre: string | null;
   distrito: string | null;
   provincia: string | null;
+  departamento: string | null;
   pais: string | null;
   productoNombre: string | null;
   cantidad: number;
@@ -24,6 +25,7 @@ export default function MetricasLogistica() {
   const [vendedorId, setVendedorId] = useState<string>("");
   const [distrito, setDistrito] = useState("");
   const [provincia, setProvincia] = useState("");
+  const [departamento, setDepartamento] = useState("");
   const [pais, setPais] = useState("");
 
   const load = async () => {
@@ -33,6 +35,7 @@ export default function MetricasLogistica() {
       if (vendedorId) params.vendedorId = vendedorId;
       if (distrito.trim()) params.distrito = distrito.trim();
       if (provincia.trim()) params.provincia = provincia.trim();
+      if (departamento.trim()) params.departamento = departamento.trim();
       if (pais.trim()) params.pais = pais.trim();
 
       const res = await api.get("/api/ventas/logistica/entregas-detalle", { params });
@@ -65,7 +68,7 @@ export default function MetricasLogistica() {
           Métricas de entregas (Logística)
         </h1>
         <p className="page-subtitle">
-          Entregas del almacén delivery por vendedor, cliente, producto y zona (Distrito, Provincia, País).
+          Entregas del almacén delivery por vendedor, cliente, producto y zona (distrito, provincia, departamento, país).
         </p>
       </div>
 
@@ -112,6 +115,19 @@ export default function MetricasLogistica() {
           </div>
         </div>
         <div className="flex-1">
+          <label className="text-sm font-medium">Departamento</label>
+          <div className="relative mt-1">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <input
+              type="text"
+              className="w-full rounded-md border border-input bg-background pl-9 pr-3 py-2 text-sm"
+              value={departamento}
+              onChange={(e) => setDepartamento(e.target.value)}
+              placeholder="Filtrar por departamento..."
+            />
+          </div>
+        </div>
+        <div className="flex-1">
           <label className="text-sm font-medium">País</label>
           <div className="relative mt-1">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -149,19 +165,20 @@ export default function MetricasLogistica() {
                 <th className="px-5 py-3 text-right font-medium text-muted-foreground">Subtotal</th>
                 <th className="px-5 py-3 text-left font-medium text-muted-foreground">Distrito</th>
                 <th className="px-5 py-3 text-left font-medium text-muted-foreground">Provincia</th>
+                <th className="px-5 py-3 text-left font-medium text-muted-foreground">Departamento</th>
                 <th className="px-5 py-3 text-left font-medium text-muted-foreground">País</th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={10} className="px-5 py-8 text-center text-muted-foreground">
+                  <td colSpan={11} className="px-5 py-8 text-center text-muted-foreground">
                     Cargando...
                   </td>
                 </tr>
               ) : detalles.length === 0 ? (
                 <tr>
-                  <td colSpan={10} className="px-5 py-8 text-center text-muted-foreground">
+                  <td colSpan={11} className="px-5 py-8 text-center text-muted-foreground">
                     No hay entregas que cumplan los filtros seleccionados
                   </td>
                 </tr>
@@ -181,6 +198,7 @@ export default function MetricasLogistica() {
                     </td>
                     <td className="px-5 py-3">{d.distrito ?? "—"}</td>
                     <td className="px-5 py-3">{d.provincia ?? "—"}</td>
+                    <td className="px-5 py-3">{d.departamento ?? "—"}</td>
                     <td className="px-5 py-3">{d.pais ?? "—"}</td>
                   </tr>
                 ))

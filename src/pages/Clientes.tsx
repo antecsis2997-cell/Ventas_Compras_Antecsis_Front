@@ -8,6 +8,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { api } from "@/lib/api";
+import { PageHeader } from "@/components/PageHeader";
 
 const TIPOS_DOC = [
   { value: "DNI",       label: "DNI",                digits: 8  },
@@ -32,6 +33,7 @@ interface ClienteRow {
   direccion: string | null;
   distrito?: string | null;
   provincia?: string | null;
+  departamento?: string | null;
   pais?: string | null;
   activo: boolean | null;
 }
@@ -45,6 +47,7 @@ const emptyForm = {
   direccion: "",
   distrito: "",
   provincia: "",
+  departamento: "",
   pais: "",
 };
 
@@ -138,6 +141,7 @@ export default function Clientes() {
       direccion: c.direccion ?? "",
       distrito: c.distrito ?? "",
       provincia: c.provincia ?? "",
+      departamento: c.departamento ?? "",
       pais: c.pais ?? "",
     });
     setFormError("");
@@ -160,6 +164,7 @@ export default function Clientes() {
         direccion: form.direccion?.trim() || null,
         distrito: form.distrito?.trim() || null,
         provincia: form.provincia?.trim() || null,
+        departamento: form.departamento?.trim() || null,
         pais: form.pais?.trim() || null,
       };
       if (editingId) {
@@ -190,8 +195,7 @@ export default function Clientes() {
   return (
     <>
       <div className="page-header">
-        <h1 className="page-title">Clientes</h1>
-        <p className="page-subtitle">Personas naturales (DNI/CE) y empresas (RUC) — base de clientes de la bodega</p>
+        <PageHeader pageKey="clients" className="mb-0" />
       </div>
 
       <div className="table-container">
@@ -270,7 +274,7 @@ export default function Clientes() {
                           {c.telefono && <div>{c.telefono}</div>}
                         </td>
                         <td className="p-3 max-w-[160px] truncate text-muted-foreground text-xs" title={c.direccion || ""}>
-                          {[c.direccion, c.distrito, c.provincia].filter(Boolean).join(", ") || "—"}
+                          {[c.direccion, c.distrito, c.provincia, c.departamento, c.pais].filter(Boolean).join(", ") || "—"}
                         </td>
                         <td className="p-3">
                           {c.activo !== false ? (
@@ -390,7 +394,7 @@ export default function Clientes() {
                 placeholder="Av. Principal 123" />
             </div>
 
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="text-sm font-medium">Distrito</label>
                 <input type="text"
@@ -405,6 +409,14 @@ export default function Clientes() {
                   className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
                   value={form.provincia}
                   onChange={(e) => setForm((f) => ({ ...f, provincia: e.target.value }))}
+                  placeholder="Lima" />
+              </div>
+              <div>
+                <label className="text-sm font-medium">Departamento</label>
+                <input type="text"
+                  className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                  value={form.departamento}
+                  onChange={(e) => setForm((f) => ({ ...f, departamento: e.target.value }))}
                   placeholder="Lima" />
               </div>
               <div>

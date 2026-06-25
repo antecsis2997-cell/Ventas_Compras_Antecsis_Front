@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { api } from "@/lib/api";
+import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import {
@@ -60,8 +61,7 @@ export default function ReportesAnuales() {
   return (
     <>
       <div className="page-header">
-        <h1 className="page-title">Ventas anuales</h1>
-        <p className="page-subtitle">Barras + tendencia por mes, KPIs anuales y exportación</p>
+        <PageHeader pageKey="reportAnnual" className="mb-0" />
       </div>
 
       <ReporteVentasVisual

@@ -33,6 +33,8 @@ interface EntregaRow {
   moneda: string;
   tipoEntrega: string | null;
   direccionEntrega: string | null;
+  departamentoEntrega?: string | null;
+  paisEntrega?: string | null;
   estadoEntrega: string | null;
   entregadoPorNombre: string | null;
   codigoTracking?: string | null;
@@ -196,6 +198,8 @@ export default function Entregas() {
     (e) =>
       e.clienteNombre?.toLowerCase().includes(search.toLowerCase()) ||
       e.direccionEntrega?.toLowerCase().includes(search.toLowerCase()) ||
+      e.departamentoEntrega?.toLowerCase().includes(search.toLowerCase()) ||
+      e.paisEntrega?.toLowerCase().includes(search.toLowerCase()) ||
       String(e.id).includes(search)
   );
 
@@ -268,7 +272,7 @@ export default function Entregas() {
         <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
         <input
           type="text"
-          placeholder="Buscar por cliente, dirección o N° venta..."
+          placeholder="Buscar por cliente, dirección, depto., país o N° venta..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="w-full rounded-md border border-input bg-card pl-9 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
@@ -287,6 +291,8 @@ export default function Entregas() {
                 <th className="px-5 py-3 text-left font-medium text-muted-foreground">Vendedor</th>
                 <th className="px-5 py-3 text-left font-medium text-muted-foreground">Tracking / Solicitar</th>
                 <th className="px-5 py-3 text-left font-medium text-muted-foreground">Dirección</th>
+                <th className="px-5 py-3 text-left font-medium text-muted-foreground">Departamento</th>
+                <th className="px-5 py-3 text-left font-medium text-muted-foreground">País</th>
                 <th className="px-5 py-3 text-left font-medium text-muted-foreground">Total</th>
                 <th className="px-5 py-3 text-left font-medium text-muted-foreground">Entregado por</th>
                 <th className="px-5 py-3 text-left font-medium text-muted-foreground">Acción</th>
@@ -295,13 +301,13 @@ export default function Entregas() {
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={10} className="px-5 py-4 text-center text-muted-foreground">
+                  <td colSpan={12} className="px-5 py-4 text-center text-muted-foreground">
                     Cargando...
                   </td>
                 </tr>
               ) : filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={10} className="px-5 py-4 text-center text-muted-foreground">
+                  <td colSpan={12} className="px-5 py-4 text-center text-muted-foreground">
                     No hay registros de {activeTab === "delivery" ? "delivery" : activeTab === "cincoSeisMeses" ? "5 a 6 meses" : "entregas"}
                   </td>
                 </tr>
@@ -337,6 +343,12 @@ export default function Entregas() {
                     </td>
                     <td className="px-5 py-3 text-muted-foreground max-w-[200px] truncate" title={e.direccionEntrega ?? ""}>
                       {e.direccionEntrega ?? "—"}
+                    </td>
+                    <td className="px-5 py-3 text-muted-foreground max-w-[120px] truncate" title={e.departamentoEntrega ?? ""}>
+                      {e.departamentoEntrega ?? "—"}
+                    </td>
+                    <td className="px-5 py-3 text-muted-foreground max-w-[100px] truncate" title={e.paisEntrega ?? ""}>
+                      {e.paisEntrega ?? "—"}
                     </td>
                     <td className="px-5 py-3 font-semibold text-foreground">
                       {formatMoney(Number(e.total), (e.moneda as Moneda) ?? "PEN")}

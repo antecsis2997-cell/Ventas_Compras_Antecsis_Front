@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { api } from "@/lib/api";
+import { PageHeader } from "@/components/PageHeader";
 
 const ASUNTOS = [
   "SOLICITO LA ADQUISICION DE STOCK",
@@ -210,10 +211,7 @@ export default function Solicitudes() {
 
   return (
     <>
-      <div className="page-header">
-        <h1 className="page-title">Solicitudes</h1>
-        <p className="page-subtitle">Solicitud de adquisición de stock. Cajero envía, Logística aprueba.</p>
-      </div>
+      <PageHeader pageKey="solicitudes" />
 
       <div className="space-y-6">
         {/* Formulario de solicitud */}

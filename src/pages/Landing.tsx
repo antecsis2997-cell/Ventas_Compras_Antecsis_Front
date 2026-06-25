@@ -18,8 +18,8 @@ export default function Landing() {
         <div className="flex flex-1 flex-col items-center justify-center p-8 lg:p-12">
           <div className="w-full max-w-sm space-y-8">
             <div className="flex flex-col items-center">
-              <img src="/logo-antecsis.png" alt="AnTecsis" className="h-28 w-auto" />
-              <p className="mt-4 text-sm text-muted-foreground">By AnTecsis</p>
+              <img src="/logo-antecsis.png" alt="ANTECSIS" className="h-28 w-auto" />
+              <p className="mt-4 text-sm text-muted-foreground">ANTECSIS</p>
             </div>
             <p className="text-center text-sm text-muted-foreground">
               Sistema de gestión para ventas, inventario y más.
@@ -55,7 +55,7 @@ export default function Landing() {
           </div>
         </div>
       </div>
-      <p className="shrink-0 border-t border-border/60 py-3 text-center text-[11px] text-muted-foreground">
+      <p className="shrink-0 border-t border-border/60 py-3 text-center text-xs text-muted-foreground">
         © {new Date().getFullYear()} ANTECSIS · Todos los derechos reservados.
       </p>
     </div>

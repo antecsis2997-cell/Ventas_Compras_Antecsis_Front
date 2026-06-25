@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { api } from "@/lib/api";
+import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -61,8 +62,7 @@ export default function ReportesDiarias() {
   return (
     <>
       <div className="page-header">
-        <h1 className="page-title">Ventas diarias</h1>
-        <p className="page-subtitle">Análisis por día con curva horaria, KPIs y exportación</p>
+        <PageHeader pageKey="reportDaily" className="mb-0" />
       </div>
 
       <ReporteVentasVisual

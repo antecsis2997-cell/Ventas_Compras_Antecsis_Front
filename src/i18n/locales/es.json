@@ -1,0 +1,146 @@
+{
+  "language": {
+    "es": "ES",
+    "en": "EN",
+    "label": "Idioma"
+  },
+  "layout": {
+    "skipToContent": "Saltar al contenido principal",
+    "closeMenu": "Cerrar menú",
+    "openMenu": "Abrir menú lateral",
+    "goHome": "Ir al inicio",
+    "expandMenu": "Expandir menú",
+    "collapseMenu": "Contraer menú",
+    "mainNav": "Menú principal",
+    "myAccount": "Mi cuenta",
+    "goToAccount": "Ir a Mi cuenta",
+    "goToAccountUser": "Ir a Mi cuenta ({{user}})",
+    "footer": "© {{year}} ANTECSIS · Todos los derechos reservados.",
+    "user": "Usuario",
+    "logout": "Cerrar sesión"
+  },
+  "login": {
+    "username": "Usuario",
+    "password": "Contraseña",
+    "submit": "Iniciar sesión",
+    "submitting": "Entrando...",
+    "forgotPassword": "Recuperar contraseña",
+    "forgotTitle": "Recuperar contraseña",
+    "forgotHint": "Ingresa tu correo electrónico asociado a tu cuenta.",
+    "forgotSuccess": "Si el correo está registrado, tu solicitud ha sido enviada. Un administrador o soporte de tu sector la revisará y te enviará el enlace de recuperación por correo.",
+    "emailPlaceholder": "correo@ejemplo.com",
+    "sendLink": "Enviar enlace",
+    "sending": "Enviando...",
+    "errorAuth": "Usuario o contraseña incorrectos",
+    "errorGeneric": "Error al iniciar sesión",
+    "errorForgot": "Error al enviar. Intenta de nuevo."
+  },
+  "common": {
+    "cancel": "Cancelar",
+    "save": "Guardar",
+    "loading": "Cargando...",
+    "search": "Buscar",
+    "actions": "Acciones",
+    "yes": "Sí",
+    "no": "No"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "platformSectors": "Plataforma sectores",
+    "home": "Inicio",
+    "screenView1": "Vista Pantalla 1",
+    "screenView2": "Vista Pantalla 2",
+    "products": "Productos",
+    "categories": "Categorías",
+    "inventory": "Inventario",
+    "purchases": "Compras",
+    "sales": "Ventas",
+    "billing": "Facturación",
+    "clients": "Clientes",
+    "suppliers": "Proveedores",
+    "reports": "Reportes",
+    "dailySales": "Ventas Diarias",
+    "monthlySales": "Ventas Mensuales",
+    "annualSales": "Ventas Anuales",
+    "logistics": "Logística",
+    "deliveries": "Entregas",
+    "deliveryMetrics": "Métricas entregas",
+    "pendingDeliveryReport": "Informe pendientes delivery",
+    "stockRequests": "Solicitudes de stock",
+    "myAccount": "Mi cuenta",
+    "license": "Licencia",
+    "systemInbox": "Bandeja del sistema",
+    "users": "Usuarios",
+    "recoveryRequests": "Solicitudes de recuperación",
+    "sectors": "Sectores",
+    "subscriptions": "Suscripciones",
+    "commercialRubrics": "Rubros comerciales",
+    "sunatFiscalConfig": "Config. Fiscal SUNAT",
+    "superuserProfile": "Perfil de superusuario"
+  },
+  "pages": {
+    "dashboard": {
+      "title": "Dashboard",
+      "subtitle": "Resumen de tu operación",
+      "greetingMorning": "Buenos días",
+      "greetingAfternoon": "Buenas tardes",
+      "greetingEvening": "Buenas noches",
+      "loadError": "Error al cargar el resumen"
+    },
+    "products": {
+      "title": "Productos",
+      "subtitle": "Catálogo de productos"
+    },
+    "sales": {
+      "title": "Ventas",
+      "subtitle": "Registro y consulta de ventas"
+    },
+    "purchases": {
+      "title": "Compras",
+      "subtitle": "Registro de compras a proveedores"
+    },
+    "clients": {
+      "title": "Clientes",
+      "subtitle": "Personas naturales (DNI/CE) y empresas (RUC) — base de clientes de la bodega"
+    },
+    "reports": {
+      "title": "Reportes",
+      "subtitle": "Exporte por rango libre o abra informes con gráficos detallados"
+    },
+    "reportDaily": {
+      "title": "Ventas diarias",
+      "subtitle": "Análisis por día con curva horaria, KPIs y exportación"
+    },
+    "reportMonthly": {
+      "title": "Ventas mensuales",
+      "subtitle": "Serie diaria del mes, composición por estado y descarga"
+    },
+    "reportAnnual": {
+      "title": "Ventas anuales",
+      "subtitle": "Barras + tendencia por mes, KPIs anuales y exportación"
+    },
+    "sectors": {
+      "title": "Sectores / Sedes",
+      "subtitle": "Gestión de sedes: nombre, teléfono, dirección y video promocional. Las inactivas no aparecen en la plataforma. Series SUNAT en Configuración Fiscal."
+    },
+    "platformSectors": {
+      "title": "Plataforma principal · Sectores",
+      "subtitleOwner": "Vista de todas las sedes del sistema. Cada tarjeta representa un punto de operación (Market / sucursal).",
+      "subtitleSuperuser": "Sus bodegas licenciadas. Use Mi cuenta para cambiar la sede activa u operar en cada una.",
+      "subtitleDefault": "Su sede asignada. El video promocional lo configura el administrador de plataforma en Sectores / Sedes."
+    },
+    "users": {
+      "title": "Usuarios",
+      "subtitle": "Gestión de usuarios del sector"
+    },
+    "solicitudes": {
+      "title": "Solicitudes",
+      "subtitle": "Solicitud de adquisición de stock. Cajero envía, Logística aprueba."
+    },
+    "notFound": {
+      "title": "Página no encontrada",
+      "subtitle": "La ruta solicitada no existe",
+      "returnHome": "Volver al inicio"
+    }
+  }
+}

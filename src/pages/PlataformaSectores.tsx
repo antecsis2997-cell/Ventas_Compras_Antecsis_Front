@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { sectoresApi, type SectorPlataformaResponse } from "@/api/sectores";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -21,6 +22,7 @@ function youtubeEmbedUrl(url: string): string | null {
 }
 
 export default function PlataformaSectores() {
+  const { t } = useTranslation();
   const { rolNombre, esDueñoPlataforma } = useAuth();
   const [items, setItems] = useState<SectorPlataformaResponse[]>([]);
   const [loading, setLoading] = useState(true);
@@ -46,13 +48,13 @@ export default function PlataformaSectores() {
   return (
     <>
       <div className="page-header">
-        <h1 className="page-title">Plataforma principal · Sectores</h1>
+        <h1 className="page-title">{t("pages.platformSectors.title")}</h1>
         <p className="page-subtitle">
           {esDueñoPlataforma
-            ? "Vista de todas las sedes del sistema. Cada tarjeta representa un punto de operación (Market / sucursal)."
+            ? t("pages.platformSectors.subtitleOwner")
             : rolNombre === "SUPERUSUARIO"
-              ? "Sus bodegas licenciadas. Use Mi cuenta para cambiar la sede activa u operar en cada una."
-              : "Su sede asignada. El video promocional lo configura el administrador de plataforma en Sectores / Sedes."}
+              ? t("pages.platformSectors.subtitleSuperuser")
+              : t("pages.platformSectors.subtitleDefault")}
         </p>
         {esDueñoPlataforma && (
           <p className="mt-2 text-sm text-muted-foreground">

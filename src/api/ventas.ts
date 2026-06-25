@@ -52,6 +52,8 @@ export const ventasApi = {
     requiereDelivery?: boolean;
     tipoEntrega?: string | null;
     direccionEntrega?: string | null;
+    departamentoEntrega?: string | null;
+    paisEntrega?: string | null;
     dniCmr?: string | null;
     yapeTelefono?: string | null;
     yapeOtp?: string | null;

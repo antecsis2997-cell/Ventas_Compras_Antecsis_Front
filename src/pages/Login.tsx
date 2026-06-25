@@ -1,8 +1,10 @@
 import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { User, Lock, Eye, EyeOff, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
+import { LanguageToggle } from "@/components/LanguageToggle";
 import {
   Dialog,
   DialogContent,
@@ -12,6 +14,7 @@ import {
 import { api } from "@/lib/api";
 
 export default function Login() {
+  const { t } = useTranslation();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -26,7 +29,9 @@ export default function Login() {
   const { login } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const from = (location.state as { from?: { pathname: string } } | null)?.from?.pathname ?? "/plataforma-sectores";
+  const from =
+    (location.state as { from?: { pathname: string } } | null)?.from?.pathname ??
+    "/plataforma-sectores";
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,12 +42,17 @@ export default function Login() {
       await login(username.trim(), password);
       navigate(from, { replace: true });
     } catch (err: unknown) {
-      const res = (err as { response?: { data?: { message?: string }; status?: number } })?.response;
-      const msg = res?.data?.message
-        ?? (res?.status === 401 ? "Usuario o contraseña incorrectos" : "Error al iniciar sesión");
+      const res = (err as { response?: { data?: { message?: string }; status?: number } })
+        ?.response;
+      const msg =
+        res?.data?.message ??
+        (res?.status === 401 ? t("login.errorAuth") : t("login.errorGeneric"));
       setError(msg);
       if (username.trim()) {
-        api.post<{ puedeRecuperar: boolean }>("/api/auth/puede-recuperar", { username: username.trim() })
+        api
+          .post<{ puedeRecuperar: boolean }>("/api/auth/puede-recuperar", {
+            username: username.trim(),
+          })
           .then((r) => setPuedeRecuperar(r.data?.puedeRecuperar ?? false))
           .catch(() => setPuedeRecuperar(false));
       }
@@ -62,7 +72,7 @@ export default function Login() {
       setForgotSuccess(true);
     } catch (err: unknown) {
       const res = (err as { response?: { data?: { message?: string } } })?.response;
-      setForgotError(res?.data?.message ?? "Error al enviar. Intenta de nuevo.");
+      setForgotError(res?.data?.message ?? t("login.errorForgot"));
     } finally {
       setForgotLoading(false);
     }
@@ -76,11 +86,15 @@ export default function Login() {
   };
 
   return (
-    <div className="flex min-h-screen flex-col bg-muted/30">
+    <div className="relative flex min-h-screen flex-col bg-muted/30">
+      <div className="absolute right-4 top-4 z-10 sm:right-6 sm:top-6">
+        <LanguageToggle />
+      </div>
+
       <div className="flex flex-1 items-center justify-center p-4">
         <div className="w-full max-w-sm space-y-8 rounded-xl border border-border bg-card p-8 shadow-lg">
           <div className="flex flex-col items-center">
-            <img src="/logo-antecsis.png" alt="AnTecsis" className="h-36 w-auto" />
+            <img src="/logo-antecsis.png" alt="ANTECSIS" className="h-36 w-auto" />
           </div>
           <form onSubmit={handleSubmit} className="space-y-4">
             {error && (
@@ -93,7 +107,7 @@ export default function Login() {
               <input
                 id="username"
                 type="text"
-                placeholder="Usuario"
+                placeholder={t("login.username")}
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 autoComplete="username"
@@ -106,7 +120,7 @@ export default function Login() {
               <input
                 id="password"
                 type={showPassword ? "text" : "password"}
-                placeholder="Contraseña"
+                placeholder={t("login.password")}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 autoComplete="current-password"
@@ -123,7 +137,7 @@ export default function Login() {
               </button>
             </div>
             <Button type="submit" className="w-full h-11" disabled={loading}>
-              {loading ? "Entrando..." : "Iniciar sesión"}
+              {loading ? t("login.submitting") : t("login.submit")}
             </Button>
             {error && puedeRecuperar && (
               <button
@@ -131,26 +145,24 @@ export default function Login() {
                 onClick={() => setShowForgot(true)}
                 className="w-full text-center text-sm text-muted-foreground hover:text-foreground underline"
               >
-                Recuperar contraseña
+                {t("login.forgotPassword")}
               </button>
             )}
           </form>
         </div>
       </div>
 
-      <p className="shrink-0 py-4 text-center text-[11px] text-muted-foreground">
-        © {new Date().getFullYear()} ANTECSIS · Todos los derechos reservados.
+      <p className="shrink-0 py-4 text-center text-xs text-muted-foreground">
+        {t("layout.footer", { year: new Date().getFullYear() })}
       </p>
 
       <Dialog open={showForgot} onOpenChange={(open) => !open && closeForgotModal()}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Recuperar contraseña</DialogTitle>
+            <DialogTitle>{t("login.forgotTitle")}</DialogTitle>
           </DialogHeader>
           {forgotSuccess ? (
-            <p className="text-sm text-muted-foreground">
-              Si el correo está registrado, tu solicitud ha sido enviada. Un administrador o soporte de tu sector la revisará y te enviará el enlace de recuperación por correo.
-            </p>
+            <p className="text-sm text-muted-foreground">{t("login.forgotSuccess")}</p>
           ) : (
             <form onSubmit={handleForgotSubmit} className="space-y-4">
               {forgotError && (
@@ -158,14 +170,12 @@ export default function Login() {
                   {forgotError}
                 </div>
               )}
-              <p className="text-sm text-muted-foreground">
-                Ingresa tu correo electrónico asociado a tu cuenta.
-              </p>
+              <p className="text-sm text-muted-foreground">{t("login.forgotHint")}</p>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <input
                   type="email"
-                  placeholder="correo@ejemplo.com"
+                  placeholder={t("login.emailPlaceholder")}
                   value={forgotEmail}
                   onChange={(e) => setForgotEmail(e.target.value)}
                   required
@@ -174,10 +184,10 @@ export default function Login() {
               </div>
               <div className="flex gap-2 justify-end">
                 <Button type="button" variant="outline" onClick={closeForgotModal}>
-                  Cancelar
+                  {t("common.cancel")}
                 </Button>
                 <Button type="submit" disabled={forgotLoading}>
-                  {forgotLoading ? "Enviando..." : "Enviar enlace"}
+                  {forgotLoading ? t("login.sending") : t("login.sendLink")}
                 </Button>
               </div>
             </form>

@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { StatCard } from "@/components/StatCard";
+import { formatAppDate } from "@/lib/locale";
 import { DashboardAnalytics, type VentasSerieDTO } from "@/components/dashboard/DashboardAnalytics";
 import { api } from "@/lib/api";
 import { formatMoney } from "@/lib/utils";
@@ -16,17 +18,12 @@ import {
   Users,
 } from "lucide-react";
 
-function getSaludo() {
+function useSaludo() {
+  const { t } = useTranslation();
   const h = new Date().getHours();
-  if (h < 12) return "Buenos días";
-  if (h < 19) return "Buenas tardes";
-  return "Buenas noches";
-}
-
-function getFechaLarga() {
-  return new Date().toLocaleDateString("es-PE", {
-    weekday: "long", year: "numeric", month: "long", day: "numeric",
-  });
+  if (h < 12) return t("pages.dashboard.greetingMorning");
+  if (h < 19) return t("pages.dashboard.greetingAfternoon");
+  return t("pages.dashboard.greetingEvening");
 }
 
 const MESES_LARGO = [
@@ -45,6 +42,8 @@ const emptySerie = (): VentasSerieDTO => ({
 });
 
 export default function Dashboard() {
+  const { t } = useTranslation();
+  const saludo = useSaludo();
   const { username } = useAuth();
   const [ventasHoy, setVentasHoy] = useState<VentasSerieDTO>(emptySerie);
   const [ventasMes, setVentasMes] = useState<VentasSerieDTO>(emptySerie);
@@ -92,7 +91,7 @@ export default function Dashboard() {
           stockMinimoAlerta: null as number | null,
         })));
       } catch (e) {
-        setError("Error al cargar el resumen");
+        setError(t("pages.dashboard.loadError"));
       }
       try {
         const pmv = await api.get("/api/dashboard/producto-mas-vendido");
@@ -110,8 +109,8 @@ export default function Dashboard() {
     return (
       <>
         <div className="page-header">
-          <h1 className="page-title">Dashboard</h1>
-          <p className="page-subtitle">Cargando...</p>
+          <h1 className="page-title">{t("pages.dashboard.title")}</h1>
+          <p className="page-subtitle">{t("common.loading")}</p>
         </div>
       </>
     );
@@ -122,8 +121,17 @@ export default function Dashboard() {
       {/* Header con saludo */}
       <div className="page-header flex items-start justify-between flex-wrap gap-3">
         <div>
-          <h1 className="page-title">{getSaludo()}, {username ?? "Usuario"} 👋</h1>
-          <p className="page-subtitle capitalize">{getFechaLarga()}</p>
+          <h1 className="page-title">
+            {saludo}, {username ?? t("layout.user")} 👋
+          </h1>
+          <p className="page-subtitle capitalize">
+            {formatAppDate(new Date(), {
+              weekday: "long",
+              year: "numeric",
+              month: "long",
+              day: "numeric",
+            })}
+          </p>
         </div>
       </div>
 

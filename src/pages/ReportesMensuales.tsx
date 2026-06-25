@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { api } from "@/lib/api";
+import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import {
@@ -77,8 +78,7 @@ export default function ReportesMensuales() {
   return (
     <>
       <div className="page-header">
-        <h1 className="page-title">Ventas mensuales</h1>
-        <p className="page-subtitle">Serie diaria del mes, composición por estado y descarga</p>
+        <PageHeader pageKey="reportMonthly" className="mb-0" />
       </div>
 
       <ReporteVentasVisual

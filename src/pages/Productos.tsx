@@ -10,6 +10,7 @@ import {
 import { api } from "@/lib/api";
 import { estiloMarcoImagenClaro } from "@/lib/productoImagenMarca";
 import { formatMoney } from "@/lib/utils";
+import { PageHeader } from "@/components/PageHeader";
 
 const UNIDADES = [{ value: "", label: "—" }, { value: "UND", label: "Unidad" }, { value: "KG", label: "Kg" }, { value: "MG", label: "Mg" }, { value: "GRAMOS", label: "Gramos" }];
 
@@ -182,11 +183,8 @@ export default function Productos() {
 
   return (
     <>
-      <div className="page-header flex items-center justify-between">
-        <div>
-          <h1 className="page-title">Productos</h1>
-          <p className="page-subtitle">Catálogo de productos</p>
-        </div>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <PageHeader pageKey="products" className="mb-0 flex-1 min-w-0" />
         <Button onClick={openCreate}>
           <Plus className="mr-2 h-4 w-4" />
           Nuevo Producto
@@ -364,7 +362,7 @@ export default function Productos() {
                 value={form.imagenUrl}
                 onChange={(e) => setForm((f) => ({ ...f, imagenUrl: e.target.value }))}
               />
-              <p className="mt-1 text-[11px] text-muted-foreground">
+              <p className="mt-1 text-xs text-muted-foreground">
                 Debe ser un enlace directo a la imagen (.jpg, .png, .webp). No funciona con links de Google Imágenes ni páginas web.
               </p>
               {form.imagenUrl?.trim() && (

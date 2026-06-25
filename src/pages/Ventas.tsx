@@ -64,6 +64,8 @@ interface VentaDetalle {
   requiereDelivery?: boolean | null;
   tipoEntrega?: string | null;
   direccionEntrega?: string | null;
+  departamentoEntrega?: string | null;
+  paisEntrega?: string | null;
   estadoEntrega?: string | null;
   entregadoPorNombre?: string | null;
   items: {
@@ -117,6 +119,8 @@ export default function Ventas() {
   const [requiereDelivery, setRequiereDelivery] = useState(false);
   const [tipoEntrega, setTipoEntrega] = useState<"INMEDIATA" | "PROGRAMADA_3_5" | "PROGRAMADA_5_6_MESES">("INMEDIATA");
   const [direccionEntrega, setDireccionEntrega] = useState("");
+  const [departamentoEntrega, setDepartamentoEntrega] = useState("");
+  const [paisEntrega, setPaisEntrega] = useState("Perú");
   const [dniCmr, setDniCmr] = useState("");
   const [yapeTelefono, setYapeTelefono] = useState("");
   const [yapeOtp, setYapeOtp] = useState("");
@@ -255,6 +259,8 @@ export default function Ventas() {
     setRequiereDelivery(false);
     setTipoEntrega("INMEDIATA" as "INMEDIATA" | "PROGRAMADA_3_5" | "PROGRAMADA_5_6_MESES");
     setDireccionEntrega("");
+    setDepartamentoEntrega("");
+    setPaisEntrega("Perú");
     setDniCmr("");
     setYapeTelefono("");
     setYapeOtp("");
@@ -480,6 +486,14 @@ export default function Ventas() {
         return;
       }
 
+      if (requiereDelivery) {
+        if (!departamentoEntrega.trim() || !paisEntrega.trim()) {
+          setFormError("Departamento y país de entrega son obligatorios con delivery");
+          setSaving(false);
+          return;
+        }
+      }
+
       const esConsumidorFinalPost = !clienteId || clienteId === "CONSUMIDOR_FINAL";
       await api.post("/api/ventas", {
         clienteId: esConsumidorFinalPost ? null : Number(clienteId),
@@ -492,6 +506,8 @@ export default function Ventas() {
         requiereDelivery: requiereDelivery,
         tipoEntrega: requiereDelivery ? tipoEntrega : null,
         direccionEntrega: requiereDelivery && (tipoEntrega === "INMEDIATA" || tipoEntrega === "PROGRAMADA_5_6_MESES") ? direccionEntrega.trim() : null,
+        departamentoEntrega: requiereDelivery ? departamentoEntrega.trim() : null,
+        paisEntrega: requiereDelivery ? paisEntrega.trim() : null,
         dniCmr: dniCmr.trim() || null,
         yapeTelefono: metodoPagoSeleccionado && metodoPagoSeleccionado.nombre.toLowerCase().includes("yape") ? yapeTelefono.trim() : null,
         yapeOtp: metodoPagoSeleccionado && metodoPagoSeleccionado.nombre.toLowerCase().includes("yape") ? yapeOtp.trim() : null,
@@ -1218,7 +1234,13 @@ export default function Ventas() {
                     <div className="flex justify-between items-center">
                       <span className="text-xs font-medium text-white/70">Delivery</span>
                       <button type="button"
-                        onClick={() => { setRequiereDelivery(false); setTipoEntrega("INMEDIATA"); setDireccionEntrega(""); }}
+                        onClick={() => {
+                          setRequiereDelivery(false);
+                          setTipoEntrega("INMEDIATA");
+                          setDireccionEntrega("");
+                          setDepartamentoEntrega("");
+                          setPaisEntrega("Perú");
+                        }}
                         className="text-[10px] text-red-400 hover:underline">Quitar</button>
                     </div>
                     <select value={tipoEntrega}
@@ -1232,6 +1254,22 @@ export default function Ventas() {
                     <input type="text" placeholder="Dirección de entrega *" value={direccionEntrega}
                       onChange={(e) => setDireccionEntrega(e.target.value)}
                       className="w-full bg-white/5 border border-white/10 rounded px-2 py-1.5 text-xs text-white placeholder-white/25 focus:outline-none" />
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <label className="text-[10px] text-white/40">Departamento *</label>
+                        <input type="text" placeholder="Ej: Lima"
+                          value={departamentoEntrega}
+                          onChange={(e) => setDepartamentoEntrega(e.target.value)}
+                          className="w-full bg-white/5 border border-white/10 rounded px-2 py-1.5 text-xs text-white placeholder-white/25 focus:outline-none mt-0.5" />
+                      </div>
+                      <div>
+                        <label className="text-[10px] text-white/40">País *</label>
+                        <input type="text" placeholder="Perú"
+                          value={paisEntrega}
+                          onChange={(e) => setPaisEntrega(e.target.value)}
+                          className="w-full bg-white/5 border border-white/10 rounded px-2 py-1.5 text-xs text-white placeholder-white/25 focus:outline-none mt-0.5" />
+                      </div>
+                    </div>
                   </div>
                 )}
 
@@ -1400,6 +1438,22 @@ export default function Ventas() {
                       <div className="col-span-2">
                         <span className="font-medium text-muted-foreground">Dirección:</span>
                         <p className="text-foreground">{ventaDetalle.direccionEntrega}</p>
+                      </div>
+                    )}
+                    {(ventaDetalle.departamentoEntrega || ventaDetalle.paisEntrega) && (
+                      <div className="col-span-2 flex flex-wrap gap-4">
+                        {ventaDetalle.departamentoEntrega && (
+                          <div>
+                            <span className="font-medium text-muted-foreground">Departamento:</span>
+                            <p className="text-foreground">{ventaDetalle.departamentoEntrega}</p>
+                          </div>
+                        )}
+                        {ventaDetalle.paisEntrega && (
+                          <div>
+                            <span className="font-medium text-muted-foreground">País:</span>
+                            <p className="text-foreground">{ventaDetalle.paisEntrega}</p>
+                          </div>
+                        )}
                       </div>
                     )}
                   </>

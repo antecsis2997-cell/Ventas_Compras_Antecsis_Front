@@ -60,7 +60,7 @@ export default function ResetPassword() {
     <div className="min-h-screen flex items-center justify-center bg-muted/30 p-4">
       <div className="w-full max-w-sm space-y-8 rounded-xl border border-border bg-card p-8 shadow-lg">
         <div className="flex flex-col items-center">
-          <img src="/logo-antecsis.png" alt="AnTecsis" className="h-24 w-auto" />
+          <img src="/logo-antecsis.png" alt="ANTECSIS" className="h-24 w-auto" />
           <h1 className="mt-4 text-lg font-semibold">Nueva contraseña</h1>
         </div>
         {!token.trim() ? (

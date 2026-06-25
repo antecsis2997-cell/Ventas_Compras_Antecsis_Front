@@ -7,6 +7,7 @@ import { FileSpreadsheet, FileText, FolderOutput, ArrowRight } from "lucide-reac
 import { Link } from "react-router-dom";
 import { openReportBlobInNewTab } from "@/lib/openReportInNewTab";
 import { toast } from "sonner";
+import { PageHeader } from "@/components/PageHeader";
 
 export default function Reportes() {
   const hoy = new Date().toISOString().slice(0, 10);
@@ -44,8 +45,7 @@ export default function Reportes() {
   return (
     <>
       <div className="page-header">
-        <h1 className="page-title">Reportes</h1>
-        <p className="page-subtitle">Exporte por rango libre o abra informes con gráficos detallados</p>
+        <PageHeader pageKey="reports" className="mb-0" />
       </div>
 
       <div className="mx-auto max-w-6xl space-y-6 pb-8">

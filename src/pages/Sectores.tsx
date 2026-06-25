@@ -10,6 +10,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { getApiErrorMessage } from "@/lib/api";
+import { PageHeader } from "@/components/PageHeader";
 import { sectoresApi } from "@/api";
 
 interface SectorRow {
@@ -137,12 +138,7 @@ export default function Sectores() {
 
   return (
     <>
-      <div className="page-header">
-        <h1 className="page-title">Sectores / Sedes</h1>
-        <p className="page-subtitle">
-          Gestión de sedes: nombre, teléfono, dirección y URL de video promocional (visible en Plataforma sectores). La columna Activa permite encender o apagar la bodega; las inactivas no aparecen en la plataforma ni en listados de clientes. Las series SUNAT se configuran en Configuración Fiscal.
-        </p>
-      </div>
+      <PageHeader pageKey="sectors" />
 
       <div className="table-container">
         {deleteError && (

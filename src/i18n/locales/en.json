@@ -1,0 +1,146 @@
+{
+  "language": {
+    "es": "ES",
+    "en": "EN",
+    "label": "Language"
+  },
+  "layout": {
+    "skipToContent": "Skip to main content",
+    "closeMenu": "Close menu",
+    "openMenu": "Open sidebar menu",
+    "goHome": "Go to home",
+    "expandMenu": "Expand menu",
+    "collapseMenu": "Collapse menu",
+    "mainNav": "Main menu",
+    "myAccount": "My account",
+    "goToAccount": "Go to My account",
+    "goToAccountUser": "Go to My account ({{user}})",
+    "footer": "© {{year}} ANTECSIS · All rights reserved.",
+    "user": "User",
+    "logout": "Sign out"
+  },
+  "login": {
+    "username": "Username",
+    "password": "Password",
+    "submit": "Sign in",
+    "submitting": "Signing in...",
+    "forgotPassword": "Recover password",
+    "forgotTitle": "Recover password",
+    "forgotHint": "Enter the email address linked to your account.",
+    "forgotSuccess": "If the email is registered, your request has been sent. An administrator or sector support will review it and send you the recovery link by email.",
+    "emailPlaceholder": "email@example.com",
+    "sendLink": "Send link",
+    "sending": "Sending...",
+    "errorAuth": "Incorrect username or password",
+    "errorGeneric": "Sign-in failed",
+    "errorForgot": "Failed to send. Please try again."
+  },
+  "common": {
+    "cancel": "Cancel",
+    "save": "Save",
+    "loading": "Loading...",
+    "search": "Search",
+    "actions": "Actions",
+    "yes": "Yes",
+    "no": "No"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "platformSectors": "Platform sectors",
+    "home": "Home",
+    "screenView1": "Screen view 1",
+    "screenView2": "Screen view 2",
+    "products": "Products",
+    "categories": "Categories",
+    "inventory": "Inventory",
+    "purchases": "Purchases",
+    "sales": "Sales",
+    "billing": "Billing",
+    "clients": "Clients",
+    "suppliers": "Suppliers",
+    "reports": "Reports",
+    "dailySales": "Daily sales",
+    "monthlySales": "Monthly sales",
+    "annualSales": "Annual sales",
+    "logistics": "Logistics",
+    "deliveries": "Deliveries",
+    "deliveryMetrics": "Delivery metrics",
+    "pendingDeliveryReport": "Pending delivery report",
+    "stockRequests": "Stock requests",
+    "myAccount": "My account",
+    "license": "License",
+    "systemInbox": "System inbox",
+    "users": "Users",
+    "recoveryRequests": "Recovery requests",
+    "sectors": "Sectors",
+    "subscriptions": "Subscriptions",
+    "commercialRubrics": "Commercial categories",
+    "sunatFiscalConfig": "SUNAT fiscal config",
+    "superuserProfile": "Superuser profile"
+  },
+  "pages": {
+    "dashboard": {
+      "title": "Dashboard",
+      "subtitle": "Overview of your operations",
+      "greetingMorning": "Good morning",
+      "greetingAfternoon": "Good afternoon",
+      "greetingEvening": "Good evening",
+      "loadError": "Failed to load summary"
+    },
+    "products": {
+      "title": "Products",
+      "subtitle": "Product catalog"
+    },
+    "sales": {
+      "title": "Sales",
+      "subtitle": "Sales registration and lookup"
+    },
+    "purchases": {
+      "title": "Purchases",
+      "subtitle": "Supplier purchase records"
+    },
+    "clients": {
+      "title": "Clients",
+      "subtitle": "Individuals (ID) and companies (tax ID) — store customer base"
+    },
+    "reports": {
+      "title": "Reports",
+      "subtitle": "Export by date range or open detailed chart reports"
+    },
+    "reportDaily": {
+      "title": "Daily sales",
+      "subtitle": "Daily analysis with hourly curve, KPIs and export"
+    },
+    "reportMonthly": {
+      "title": "Monthly sales",
+      "subtitle": "Daily series for the month, status breakdown and download"
+    },
+    "reportAnnual": {
+      "title": "Annual sales",
+      "subtitle": "Bars + monthly trend, annual KPIs and export"
+    },
+    "sectors": {
+      "title": "Sectors / Sites",
+      "subtitle": "Site management: name, phone, address and promo video. Inactive sites are hidden from the platform. SUNAT series in Fiscal Configuration."
+    },
+    "platformSectors": {
+      "title": "Main platform · Sectors",
+      "subtitleOwner": "View of all sites in the system. Each card is an operation point (market / branch).",
+      "subtitleSuperuser": "Your licensed stores. Use My account to switch the active site or operate in each one.",
+      "subtitleDefault": "Your assigned site. Promo video is configured by the platform admin under Sectors / Sites."
+    },
+    "users": {
+      "title": "Users",
+      "subtitle": "Sector user management"
+    },
+    "solicitudes": {
+      "title": "Requests",
+      "subtitle": "Stock acquisition requests. Cashier submits, Logistics approves."
+    },
+    "notFound": {
+      "title": "Page not found",
+      "subtitle": "The requested route does not exist",
+      "returnHome": "Return to home"
+    }
+  }
+}

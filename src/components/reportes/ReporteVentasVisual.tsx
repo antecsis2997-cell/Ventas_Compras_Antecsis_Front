@@ -63,7 +63,7 @@ function MoneyTooltip({
   const lbl = payload[0]?.payload?.label ?? label;
   return (
     <div className="rounded-xl border border-border bg-popover/95 px-3 py-2 shadow-lg backdrop-blur-sm">
-      <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">{lbl}</p>
+      <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{lbl}</p>
       <p className="text-sm font-semibold tabular-nums text-foreground">{formatMoney(v)}</p>
     </div>
   );
@@ -80,7 +80,7 @@ function EstadoTooltip({
   const p = payload[0];
   return (
     <div className="rounded-xl border border-border bg-popover/95 px-3 py-2 shadow-lg backdrop-blur-sm">
-      <p className="text-[11px] font-medium text-muted-foreground">{p.name}</p>
+      <p className="text-xs font-medium text-muted-foreground">{p.name}</p>
       <p className="text-sm font-semibold tabular-nums text-foreground">{p.value}</p>
     </div>
   );
@@ -124,7 +124,7 @@ function KpiCard({
         <div className="min-w-0 flex-1">
           <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{label}</p>
           <p className="mt-1 truncate text-xl font-bold tracking-tight text-foreground sm:text-2xl">{value}</p>
-          {hint ? <p className="mt-1 text-[11px] text-muted-foreground">{hint}</p> : null}
+          {hint ? <p className="mt-1 text-xs text-muted-foreground">{hint}</p> : null}
         </div>
         <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${iconBg}`}>
           <Icon className="h-5 w-5" />
